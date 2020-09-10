@@ -10,12 +10,17 @@ class Collection extends BaseCollection
 
     public function current()
     {
+        return $this->offsetGet($this->index);
+    }
+
+    public function offsetGet($offset)
+    {
         $data = $this->data[$this->index];
         foreach ($this->withArr as $with) {
             /** @var Relation $belongs */
             list($method, $belongs) = $with;
             $data[$method] = $belongs->fetch($data);
         }
-        return $data;
+        return new $this->from($data);
     }
 }

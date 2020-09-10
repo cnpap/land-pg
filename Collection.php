@@ -46,7 +46,11 @@ class Collection implements Iterator, Edition, ArrayAccess
 
     function toArray()
     {
-        return $this->data;
+        $data = [];
+        for ($i = 0; $i < count($this->data); $i++) {
+            $data[] = $this->offsetGet($i);
+        }
+        return $data;
     }
 
     private function cleaned()

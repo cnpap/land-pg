@@ -5,6 +5,7 @@ namespace LandPG;
 use LandPG\Exception\ConnException;
 use LandPG\Relation\Relation;
 use LandPG\Relation\Collection;
+use LandPG\Collection as BaseCollection;
 
 class Builder extends ToSql implements Edition
 {
@@ -230,7 +231,8 @@ class Builder extends ToSql implements Edition
         if ($result === false) {
             return false;
         }
-        $collection = new Collection(pg_fetch_all($result), get_class($this->model));
+        $face = count($this->withArr) ? Collection::class : BaseCollection::class;
+        $collection = new $face(pg_fetch_all($result), get_class($this->model));
         if (count($this->withArr)) {
             $collection->withArr = array_map(function ($method) use ($collection) {
                 /** @var Builder $foreign */
