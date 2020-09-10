@@ -38,7 +38,7 @@ class Builder extends ToSql implements Edition
 
     public function columns(array $columns)
     {
-        $this->columns = $columns;
+        $this->columns = array_merge($this->columns, $columns);
     }
 
     /**

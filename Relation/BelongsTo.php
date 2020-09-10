@@ -12,6 +12,7 @@ class BelongsTo extends Relation
 
     function __construct(Model $model, Builder $foreign, string $localKey, string $foreignKey, bool $first = false)
     {
+        $foreign->columns([$foreignKey]);
         $this->model = $model;
         $this->foreign = $foreign;
         $this->localKey = $localKey;
@@ -38,12 +39,13 @@ class BelongsTo extends Relation
     function fetch(array $localRow)
     {
         $result = [];
+        /** @var Model $foreignRow */
         foreach ($this->data as $foreignRow) {
             if ($localRow[$this->localKey] === $foreignRow[$this->foreignKey]) {
                 if ($this->first) {
-                    return $foreignRow;
+                    return $foreignRow->toArray();
                 } else {
-                    $result[] = $foreignRow;
+                    $result[] = $foreignRow->toArray();
                 }
             }
         }

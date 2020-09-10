@@ -4,10 +4,11 @@ namespace LandPG;
 
 use Closure;
 use Throwable;
+use ArrayAccess;
 use LandPG\Relation\BelongsTo;
 use LandPG\Relation\BelongsToMiddle;
 
-class Model
+class Model implements ArrayAccess
 {
     protected string $host = '';
 
@@ -132,5 +133,30 @@ class Model
         $belongsToMiddle = new BelongsToMiddle($this, $foreign, $middle, $localKey, $ofLocalKey, $foreignKey, $ofForeignKey);
         $foreign->belongsTo($belongsToMiddle);
         return $foreignKey;
+    }
+
+    public function offsetExists($offset)
+    {
+        return isset($this->attributes[$offset]);
+    }
+
+    public function offsetGet($offset)
+    {
+        return $this->{$offset};
+    }
+
+    public function offsetSet($offset, $value)
+    {
+        $this->{$offset} = $value;
+    }
+
+    public function offsetUnset($offset)
+    {
+        unset($this->attributes[$offset]);
+    }
+
+    public function toArray()
+    {
+        return $this->attributes;
     }
 }

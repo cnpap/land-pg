@@ -16,6 +16,7 @@ class BelongsToMiddle extends Relation
 
     function __construct(Model $model, Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey)
     {
+        $foreign->columns([$foreignKey]);
         $this->model = $model;
         $this->foreign = $foreign;
         $this->middle = $middle;
