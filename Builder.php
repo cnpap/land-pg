@@ -235,7 +235,7 @@ class Builder extends ToSql implements Edition
     public function select()
     {
         $result = $this->execute($this->selectBefore());
-        $data = pg_fetch_array($result);
+        $data = pg_fetch_all($result);
         if (is_bool($data)) {
             $data = [];
         }
