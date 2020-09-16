@@ -51,7 +51,7 @@ class Collection implements Iterator, Edition, ArrayAccess
     {
         $data = [];
         for ($i = 0; $i < count($this->data); $i++) {
-            $data[] = $this->offsetGet($i);
+            $data[] = $this->offsetGet($i, false);
         }
         return $data;
     }
