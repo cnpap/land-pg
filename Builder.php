@@ -230,9 +230,7 @@ class Builder extends ToSql implements Edition
     }
 
     /**
-     * @return false|Collection
-     *
-     * 查询时不以查询结果数量为依据, 如果失败一定是 false
+     * @return Collection
      */
     public function select()
     {
@@ -262,7 +260,7 @@ class Builder extends ToSql implements Edition
     public function first()
     {
         $this->limit(1);
-        return $this->select()->current() ?? null;
+        return $this->select()->current();
     }
 
     public function sum(string $key)
