@@ -3,6 +3,7 @@
 namespace LandPG;
 
 use LandPG\Exception\ConnException;
+use LandPG\Exception\SqlExecException;
 use LandPG\Relation\Relation;
 use LandPG\Relation\Collection;
 use LandPG\Collection as BaseCollection;
@@ -108,6 +109,10 @@ class Builder extends ToSql implements Edition
         $this->withArr = array_merge($this->withArr, $withArr);
     }
 
+    /**
+     * @param $sql
+     * @return resource
+     */
     protected function execute($sql)
     {
         $conn = $this->model->getConn();
@@ -116,7 +121,11 @@ class Builder extends ToSql implements Edition
         if ($ok === false) {
             throw new ConnException();
         }
-        return pg_execute($conn, $id, $this->guard->data);
+        $result = pg_execute($conn, $id, $this->guard->data);
+        if ($result === false) {
+            throw new SqlExecException($this->guard->fmtSql($sql));
+        }
+        return $result;
     }
 
     public function insertBefore(array $data, array $conflict)
@@ -143,7 +152,7 @@ class Builder extends ToSql implements Edition
      * @param array $data
      * @param array $conflict
      *
-     * @return false|resource
+     * @return resource
      *
      * @see $data        二维数组, 一个或多个键值, 做为新增数据
      * @see $conflict[0] 一维数组, 一个或多个字段用作判断信息是否存在, 如果存在则舍弃新增, 执行子查询
@@ -228,11 +237,12 @@ class Builder extends ToSql implements Edition
     public function select()
     {
         $result = $this->execute($this->selectBefore());
-        if ($result === false) {
-            return false;
+        $data = pg_fetch_array($result);
+        if (is_bool($data)) {
+            $data = [];
         }
         $face = count($this->withArr) ? Collection::class : BaseCollection::class;
-        $collection = new $face(pg_fetch_all($result), get_class($this->model));
+        $collection = new $face($data, get_class($this->model));
         if (count($this->withArr)) {
             $collection->withArr = array_map(function ($method) use ($collection) {
                 /** @var Builder $foreign */

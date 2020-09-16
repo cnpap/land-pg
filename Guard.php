@@ -33,4 +33,12 @@ class Guard
         }
         return "case $arr[0] " . implode(' ', $caseSql) . ' end';
     }
+
+    public function fmtSql(string $sql)
+    {
+        $data = $this->data;
+        return preg_replace_callback('@\$([\d])@', function ($matches) use ($data) {
+            return $data[$matches[1] - 1];
+        }, $sql);
+    }
 }
