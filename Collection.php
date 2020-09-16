@@ -21,7 +21,10 @@ class Collection implements Iterator, Edition, ArrayAccess
 
     public function current()
     {
-        return new $this->from($this->data[$this->index]);
+        if (isset($this->data[$this->index])) {
+            return new $this->from($this->data[$this->index]);
+        }
+        return null;
     }
 
     public function next()

@@ -15,6 +15,9 @@ class Collection extends BaseCollection
 
     public function offsetGet($offset)
     {
+        if (!isset($this->data[$offset])) {
+            return null;
+        }
         $data = $this->data[$offset];
         foreach ($this->withArr as $with) {
             /** @var Relation $belongs */
