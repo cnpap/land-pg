@@ -119,9 +119,12 @@ class Collection implements Iterator, Edition, ArrayAccess
         return isset($this->data[$offset]);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset, $instance = true)
     {
-        return new $this->from($this->data[$offset] ?? null);
+        if ($instance === true) {
+            return new $this->from($this->data[$offset] ?? null);
+        }
+        return $this->data[$offset] ?? null;
     }
 
     public function offsetSet($offset, $value)
