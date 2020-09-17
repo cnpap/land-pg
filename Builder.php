@@ -153,7 +153,7 @@ class Builder extends ToSql implements Edition
      * @param array $data
      * @param array $conflict
      *
-     * @return resource
+     * @return int
      *
      * @see $data        二维数组, 一个或多个键值, 做为新增数据
      * @see $conflict[0] 一维数组, 一个或多个字段用作判断信息是否存在, 如果存在则舍弃新增, 执行子查询
@@ -161,7 +161,7 @@ class Builder extends ToSql implements Edition
      */
     public function insert(array $data, array $conflict = [])
     {
-        return $this->execute($this->insertBefore($data, $conflict));
+        return pg_affected_rows($this->execute($this->insertBefore($data, $conflict)));
     }
 
     public function delete()
@@ -171,7 +171,7 @@ class Builder extends ToSql implements Edition
         if (count($this->whereExp)) {
             $execSql .= ' where ' . $this->toWhereSqlPrepare();
         }
-        return $this->execute($execSql);
+        return pg_affected_rows($this->execute($execSql));
     }
 
     public function updateBefore(array $data)
@@ -187,7 +187,7 @@ class Builder extends ToSql implements Edition
 
     public function update(array $data)
     {
-        return $this->execute($this->updateBefore($data));
+        return pg_affected_rows($this->execute($this->updateBefore($data)));
     }
 
     public function belongsTo(Relation $belongs)
