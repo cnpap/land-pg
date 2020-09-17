@@ -43,25 +43,26 @@ class Builder extends ToSql implements Edition
     }
 
     /**
-     * @param array $exps
+     * @param string $column
+     * @param string $char
+     * @param $value
      * @param bool $merge
      *
-     * @see array $data 传递过滤条件
-     * [
-     *     ['column1', '=', 'aa'],
-     *     ['column2', '>', 'bb'],
-     *     ['column3', '<', 'cc'],
-     *     ['column4', 'in', [1, 2, 3]],
-     *     ['column5', 'not in', [1, 2, 3]],
-     *     ['column6', 'in', a Builder object],
-     *     ['column7', 'is', 'null'],
-     *     ['column8', 'is not', 'null']
-     *     ....
-     * ]
+     * 'column1', '=', 'aa'
+     * 'column2', '>', 'bb'
+     * 'column3', '<', 'cc'
+     * 'column4', 'in', [1, 2, 3]
+     * 'column5', 'not in', [1, 2, 3]
+     * 'column6', 'in', a Builder object
+     * 'column7', 'is', 'null'
+     * 'column8', 'is not', 'null'
+     * ....
+     *
      * @see bool $merge 如果传递 false 则 where 通过 or 分割
      */
-    public function where(array $exps, bool $merge = true)
+    public function where(string $column, string $char, $value, bool $merge = true)
     {
+        $exps = [[$column, $char, $value]];
         if ($merge && count($this->whereExp)) {
             $endWhere = array_merge(end($this->whereExp), $exps);
             $this->whereExp[count($this->whereExp) - 1] = $endWhere;
