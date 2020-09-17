@@ -253,6 +253,19 @@ class Builder extends ToSql implements Edition
         return $collection;
     }
 
+    public function page($page, $perPage)
+    {
+        $amount = clone $this;
+        $this->limit($perPage);
+        $this->offset($perPage * ($page - 1));
+        return [
+            'data' => $this->select()->toArray(),
+            'page' => $page,
+            'per_page' => $perPage,
+            'amount' => $amount->count()
+        ];
+    }
+
     public function union(Builder $select)
     {
         $this->union = $select;
