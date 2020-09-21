@@ -12,7 +12,6 @@ class BelongsTo extends Relation
 
     function __construct(Model $model, Builder $foreign, string $localKey, string $foreignKey, bool $first = false)
     {
-        $foreign->columns([$foreignKey]);
         $this->model = $model;
         $this->foreign = $foreign;
         $this->localKey = $localKey;

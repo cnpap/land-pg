@@ -21,7 +21,11 @@ class Guard
             $is[] = '$' . ++$this->count;
             $this->data[] = $v;
         }
-        return '(' . implode(', ', $is) . ')';
+        if (count($is)) {
+            return '(' . implode(', ', $is) . ')';
+        } else {
+            return '(null)';
+        }
     }
 
     public function when(array $arr)

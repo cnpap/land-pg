@@ -10,13 +10,14 @@ class BelongsToMiddle extends Relation
 {
     protected Builder $middle;
 
+    protected Collection $middleCol;
+
     protected string $ofLocalKey;
 
     protected string $ofForeignKey;
 
     function __construct(Model $model, Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey)
     {
-        $foreign->columns([$foreignKey]);
         $this->model = $model;
         $this->foreign = $foreign;
         $this->middle = $middle;
@@ -37,24 +38,33 @@ class BelongsToMiddle extends Relation
     public function batch(Collection $collection)
     {
         $localKeys = $collection->one($this->localKey);
-        $this->middle->columns([$this->ofForeignKey]);
+        $this->middle->columns([$this->ofLocalKey, $this->ofForeignKey]);
         $this->middle->where($this->ofLocalKey, 'in', $localKeys);
         $this->dev();
-        $this->foreign->select();
+        $this->data = $this->foreign->select();
     }
 
     public function dev()
     {
-        $originKeys = $this->middle->select()->one($this->ofForeignKey);
+        $this->middleCol = $this->middle->select();
+        $originKeys = $this->middleCol->one($this->ofForeignKey);
         $this->foreign->where($this->foreignKey, 'in', $originKeys);
     }
 
     function fetch(array $localRow)
     {
+        $middleKeys = [];
+        for ($i = 0; $i < $this->middleCol->count(); $i++) {
+            $middleModel = $this->middleCol[$i];
+            if ($localRow[$this->localKey] === $middleModel->{$this->ofLocalKey}) {
+                $middleKeys[] = $middleModel->{$this->ofForeignKey};
+            }
+        }
         $result = [];
+        /** @var Model $foreignRow */
         foreach ($this->data as $foreignRow) {
-            if ($localRow[$this->localKey] === $foreignRow[$this->foreignKey]) {
-                $result[] = $foreignRow;
+            if (in_array($foreignRow->{$this->foreignKey}, $middleKeys)) {
+                $result[] = $foreignRow->toArray();
             }
         }
         return $result;
