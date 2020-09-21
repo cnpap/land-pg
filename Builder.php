@@ -197,9 +197,6 @@ class Builder extends ToSql implements Edition
 
     public function selectBefore()
     {
-        if (!is_null($this->belongs)) {
-            $this->belongs->attach();
-        }
         $this->useGuard();
         $columnSql = '*';
         if (count($this->columns)) {
