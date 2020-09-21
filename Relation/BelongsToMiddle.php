@@ -8,7 +8,7 @@ use LandPG\Model;
 
 class BelongsToMiddle extends Relation
 {
-    protected string $middle;
+    protected Builder $middle;
 
     protected string $ofLocalKey;
 
@@ -30,7 +30,7 @@ class BelongsToMiddle extends Relation
     {
         $localKey = $this->model->{$this->localKey};
         $this->middle->columns([$this->ofForeignKey]);
-        $this->middle->where([[$this->ofLocalKey, '=', $localKey]]);
+        $this->middle->where($this->ofLocalKey, '=', $localKey);
         $this->dev();
     }
 
@@ -38,7 +38,7 @@ class BelongsToMiddle extends Relation
     {
         $localKeys = $collection->one($this->localKey);
         $this->middle->columns([$this->ofForeignKey]);
-        $this->middle->where([[$this->ofLocalKey, 'in', $localKeys]]);
+        $this->middle->where($this->ofLocalKey, 'in', $localKeys);
         $this->dev();
         $this->foreign->select();
     }
@@ -46,7 +46,7 @@ class BelongsToMiddle extends Relation
     public function dev()
     {
         $originKeys = $this->middle->select()->one($this->ofForeignKey);
-        $this->foreign->where([[$this->foreignKey, 'in', $originKeys]]);
+        $this->foreign->where($this->foreignKey, 'in', $originKeys);
     }
 
     function fetch(array $localRow)

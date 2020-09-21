@@ -132,7 +132,7 @@ class Model implements ArrayAccess
     {
         $belongsToMiddle = new BelongsToMiddle($this, $foreign, $middle, $localKey, $ofLocalKey, $foreignKey, $ofForeignKey);
         $foreign->belongsTo($belongsToMiddle);
-        return $foreignKey;
+        return $foreign;
     }
 
     public function offsetExists($offset)

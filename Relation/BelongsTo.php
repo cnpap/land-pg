@@ -23,7 +23,7 @@ class BelongsTo extends Relation
     function attach()
     {
         $localKey = $this->model->{$this->localKey};
-        $this->foreign->where([[$this->foreignKey, '=', $localKey]]);
+        $this->foreign->where($this->foreignKey, '=', $localKey);
         if ($this->first) {
             $this->foreign->limit(1);
         }
@@ -32,7 +32,7 @@ class BelongsTo extends Relation
     function batch(Collection $collection)
     {
         $localKeys = $collection->one($this->localKey);
-        $this->foreign->where([[$this->foreignKey, 'in', $localKeys]]);
+        $this->foreign->where($this->foreignKey, 'in', $localKeys);
         $this->data = $this->foreign->select();
     }
 
