@@ -13,7 +13,7 @@ class Collection extends BaseCollection
         return $this->offsetGet($this->index);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset, $instance = true)
     {
         if (!isset($this->data[$offset])) {
             return null;
@@ -24,6 +24,9 @@ class Collection extends BaseCollection
             list($method, $belongs) = $with;
             $data[$method] = $belongs->fetch($data);
         }
-        return new $this->from($data);
+        if ($instance) {
+            return new $this->from($data);
+        }
+        return $data;
     }
 }
