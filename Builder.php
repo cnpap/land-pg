@@ -258,8 +258,7 @@ class Builder extends ToSql implements Edition
         if (is_null($page)) {
             $page = $_GET['page'];
             $perPage = $_GET['per_page'];
-        }
-        if (is_null($perPage)) {
+        } else if (is_null($perPage)) {
             $perPage = $_GET['per_page'];
         }
         $amount = clone $this;
