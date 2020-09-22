@@ -27,7 +27,7 @@ class ToSql
         $sqlArr = [];
         foreach ($data as $column => $exp) {
             $sqlStr = "$column = ";
-            if (is_string($exp)) {
+            if (is_string($exp) || is_numeric($exp) || is_float($exp)) {
                 $sqlArr[] = $sqlStr . $this->guard->str($exp);
             } else if (is_array($exp)) {
                 $sqlArr[] = $sqlStr . $this->guard->when($exp);
