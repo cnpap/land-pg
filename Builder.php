@@ -253,8 +253,15 @@ class Builder extends ToSql implements Edition
         return $collection;
     }
 
-    public function page($page, $perPage)
+    public function page($page = null, $perPage = null)
     {
+        if (is_null($page)) {
+            $page = $_GET['page'];
+            $perPage = $_GET['per_page'];
+        }
+        if (is_null($perPage)) {
+            $perPage = $_GET['per_page'];
+        }
         $amount = clone $this;
         $this->limit($perPage);
         $this->offset($perPage * ($page - 1));
