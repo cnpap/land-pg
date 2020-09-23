@@ -63,7 +63,7 @@ class Model implements ArrayAccess
         }
         try {
             $result = $process();
-            if ($result) {
+            if ($result === false) {
                 $this->rollback();
                 return false;
             }
@@ -71,6 +71,7 @@ class Model implements ArrayAccess
             if ($commit === false) {
                 return false;
             }
+            return $result;
         } catch (Throwable $e) {
             $this->commit();
             throw $e;
