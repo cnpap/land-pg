@@ -262,8 +262,8 @@ class Builder extends ToSql implements Edition
             $perPage = $_GET['per_page'];
         }
         $amount = clone $this;
-        if (isset($_GET['orderBy'])) {
-            $this->orderBy([$_GET['orderBy'] => $_GET['orderDirection'] ?? 'asc']);
+        if (isset($_GET['order_by'])) {
+            $this->orderBy([$_GET['order_by'] => $_GET['order_direction'] ?? 'asc']);
         }
         $this->limit($perPage);
         $this->offset($perPage * ($page - 1));
