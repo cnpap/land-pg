@@ -45,8 +45,8 @@ class Builder extends ToSql implements Edition
     /**
      * @param string $column
      * @param string $char
-     * @param $value
-     * @param bool $merge
+     * @param        $value
+     * @param bool   $merge
      *
      * 'column1', '=', 'aa'
      * 'column2', '>', 'bb'
@@ -64,7 +64,7 @@ class Builder extends ToSql implements Edition
     {
         $exps = [[$column, $char, $value]];
         if ($merge && count($this->whereExp)) {
-            $endWhere = array_merge(end($this->whereExp), $exps);
+            $endWhere                                   = array_merge(end($this->whereExp), $exps);
             $this->whereExp[count($this->whereExp) - 1] = $endWhere;
         } else {
             $this->whereExp[] = $exps;
@@ -117,8 +117,8 @@ class Builder extends ToSql implements Edition
     protected function execute($sql)
     {
         $conn = $this->model->getConn();
-        $id = uniqid();
-        $ok = pg_prepare($conn, $id, $sql);
+        $id   = uniqid();
+        $ok   = pg_prepare($conn, $id, $sql);
         if ($ok === false) {
             throw new ConnException();
         }
@@ -137,7 +137,7 @@ class Builder extends ToSql implements Edition
             $sqlArr[] = $this->guard->arr(array_values($row));
         }
         $setColumnSql = implode(', ', array_keys($data[0]));
-        $execSql = "insert into " . $this->model->getTable() . " ($setColumnSql) values " . implode(', ', $sqlArr);
+        $execSql      = "insert into " . $this->model->getTable() . " ($setColumnSql) values " . implode(', ', $sqlArr);
         if (count($conflict)) {
             $columnSql = implode(', ', $conflict[0]);
             if (count($conflict[1])) {
@@ -177,7 +177,7 @@ class Builder extends ToSql implements Edition
     public function updateBefore(array $data)
     {
         $this->useGuard();
-        $setSql = $this->toUpdatePrepare($data);
+        $setSql  = $this->toUpdatePrepare($data);
         $execSql = "update " . $this->model->getTable() . " set " . $setSql;
         if (count($this->whereExp)) {
             $execSql .= ' where ' . $this->toWhereSqlPrepare();
@@ -211,7 +211,7 @@ class Builder extends ToSql implements Edition
             $execSql .= ' ' . $this->union->selectBefore();
         }
         if (count($this->sort)) {
-            $execSql .= ' order by ';
+            $execSql       .= ' order by ';
             $groupBySqlArr = [];
             foreach ($this->sort as $column => $order) {
                 $groupBySqlArr[] = "$column $order";
@@ -236,11 +236,11 @@ class Builder extends ToSql implements Edition
             $this->orderBy([$this->model->primaryKey => self::ORDER_BY_ASC]);
         }
         $result = $this->execute($this->selectBefore());
-        $data = pg_fetch_all($result);
+        $data   = pg_fetch_all($result);
         if (is_bool($data)) {
             $data = [];
         }
-        $face = count($this->withArr) ? Collection::class : BaseCollection::class;
+        $face       = count($this->withArr) ? Collection::class : BaseCollection::class;
         $collection = new $face($data, get_class($this->model));
         if (count($this->withArr)) {
             $collection->withArr = array_map(function ($method) use ($collection) {
@@ -256,19 +256,22 @@ class Builder extends ToSql implements Edition
     public function page($page = null, $perPage = null)
     {
         if (is_null($page)) {
-            $page = $_GET['page'];
+            $page    = $_GET['page'];
             $perPage = $_GET['per_page'];
         } else if (is_null($perPage)) {
             $perPage = $_GET['per_page'];
         }
         $amount = clone $this;
+        if (isset($_GET['order_by'])) {
+            $this->orderBy([$_GET['order_by'] => $_GET['order_direction'] ?? 'asc']);
+        }
         $this->limit($perPage);
         $this->offset($perPage * ($page - 1));
         return [
-            'data' => $this->select()->toArray(),
-            'page' => $page,
+            'data'     => $this->select()->toArray(),
+            'page'     => $page,
             'per_page' => $perPage,
-            'amount' => $amount->count()
+            'amount'   => $amount->count()
         ];
     }
 
