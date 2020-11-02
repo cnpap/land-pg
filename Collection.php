@@ -4,19 +4,24 @@ namespace LandPG;
 
 use Iterator;
 use ArrayAccess;
+use ReflectionClass;
+use ReflectionException;
 
 class Collection implements Iterator, Edition, ArrayAccess
 {
     protected array $data;
 
+    protected array $columns;
+
     protected int $index = 0;
 
     protected string $from;
 
-    public function __construct(array $data, string $from)
+    public function __construct(array $data, array $columns, string $from)
     {
-        $this->data = $data;
-        $this->from = $from;
+        $this->data    = $data;
+        $this->from    = $from;
+        $this->columns = $columns;
     }
 
     public function current()
@@ -47,13 +52,40 @@ class Collection implements Iterator, Edition, ArrayAccess
         $this->index = 0;
     }
 
+    /**
+     * @return array
+     * @throws ReflectionException
+     */
     function toArray()
     {
-        $data = [];
-        for ($i = 0; $i < count($this->data); $i++) {
-            $data[] = $this->offsetGet($i, false);
+        $re      = new ReflectionClass(new $this->from);
+        $comment = $re->getDocComment();
+        preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|float)\s+\$?([a-z_]+)@', $comment, $matches);
+        if (count($matches)) {
+            $sect = $matches[3];
+            if (count($this->columns)) {
+                $sect = array_intersect($sect, $this->columns);
+            }
+            if (count($sect)) {
+                return array_map(function ($row) use ($matches, $sect) {
+                    foreach ($sect as $sectK => $sectV) {
+                        switch ($matches[2][$sectK]) {
+                            case 'int':
+                                $row[$matches[3][$sectK]] = (int)$row[$matches[3][$sectK]];
+                                break;
+                            case 'bool':
+                                $row[$matches[3][$sectK]] = (bool)$row[$matches[3][$sectK]];
+                                break;
+                            case 'float':
+                                $row[$matches[3][$sectK]] = (float)$row[$matches[3][$sectK]];
+                                break;
+                        }
+                    }
+                    return $row;
+                }, $this->data);
+            }
         }
-        return $data;
+        return $this->data;
     }
 
     private function cleaned()

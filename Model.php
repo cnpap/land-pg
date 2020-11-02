@@ -7,6 +7,8 @@ use Throwable;
 use ArrayAccess;
 use LandPG\Relation\BelongsTo;
 use LandPG\Relation\BelongsToMiddle;
+use ReflectionClass;
+use ReflectionException;
 
 class Model implements ArrayAccess
 {
@@ -156,8 +158,34 @@ class Model implements ArrayAccess
         unset($this->attributes[$offset]);
     }
 
+    /**
+     * @return array
+     * @throws ReflectionException
+     */
     public function toArray()
     {
+        $re      = new ReflectionClass($this);
+        $comment = $re->getDocComment();
+        preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|float)\s+\$?([a-z_]+)@', $comment, $matches, PREG_SET_ORDER);
+        if (count($matches)) {
+            $attributes = $this->attributes;
+            foreach ($matches as $match) {
+                if (isset($attributes[$match[3]])) {
+                    switch ($match[2]) {
+                        case 'int':
+                            $attributes[$match[3]] = (int)$attributes[$match[3]];
+                            break;
+                        case 'bool':
+                            $attributes[$match[3]] = (bool)$attributes[$match[3]];
+                            break;
+                        case 'float':
+                            $attributes[$match[3]] = (float)$attributes[$match[3]];
+                            break;
+                    }
+                }
+            }
+            return $attributes;
+        }
         return $this->attributes;
     }
 }

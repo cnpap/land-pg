@@ -7,7 +7,7 @@ namespace LandPG;
  * @package LandPG
  *
  * @property-read $whereExp
- * @method selectBefore
+ * @method previewSelect
  */
 class ToSql
 {
@@ -50,7 +50,7 @@ class ToSql
                     $whereSqlArr[] = $sqlStr . $this->guard->arr($value);
                 } else if ($value instanceof Builder) {
                     $value->useGuard($this->guard);
-                    $whereSqlArr[] = $sqlStr . '(' . $value->selectBefore() . ')';
+                    $whereSqlArr[] = $sqlStr . '(' . $value->previewSelect() . ')';
                 }
             }
             $sqlArr[] = implode(' and ', $whereSqlArr);

@@ -2,6 +2,7 @@
 
 namespace LandPG;
 
+use Closure;
 use LandPG\Exception\ConnException;
 use LandPG\Exception\SqlExecException;
 use LandPG\Relation\Relation;
@@ -40,13 +41,14 @@ class Builder extends ToSql implements Edition
     public function columns(array $columns)
     {
         $this->columns = array_merge($this->columns, $columns);
+        return $this;
     }
 
     /**
      * @param string $column
      * @param string $char
-     * @param        $value
-     * @param bool   $merge
+     * @param $value
+     * @param bool $merge
      *
      * 'column1', '=', 'aa'
      * 'column2', '>', 'bb'
@@ -57,6 +59,8 @@ class Builder extends ToSql implements Edition
      * 'column7', 'is', 'null'
      * 'column8', 'is not', 'null'
      * ....
+     *
+     * @return $this
      *
      * @see bool $merge 如果传递 false 则 where 通过 or 分割
      */
@@ -69,10 +73,21 @@ class Builder extends ToSql implements Edition
         } else {
             $this->whereExp[] = $exps;
         }
+        return $this;
+    }
+
+    public function when($exp, Closure $next)
+    {
+        if ((bool)$exp) {
+            $next($this, $exp);
+        }
+        return $this;
     }
 
     /**
      * @param array $sort
+     *
+     * @return $this
      *
      * @see $sort
      * [
@@ -83,20 +98,32 @@ class Builder extends ToSql implements Edition
     public function orderBy(array $sort)
     {
         $this->sort = $sort;
+        return $this;
     }
 
+    /**
+     * @param int $limitNum
+     * @return $this
+     */
     public function limit(int $limitNum)
     {
         $this->limitNum = $limitNum;
+        return $this;
     }
 
+    /**
+     * @param int $offsetNum
+     * @return $this
+     */
     public function offset(int $offsetNum)
     {
         $this->offsetNum = $offsetNum;
+        return $this;
     }
 
     /**
      * @param array $withArr
+     * @return $this
      *
      * @see array $withArr
      * [
@@ -108,6 +135,7 @@ class Builder extends ToSql implements Edition
     public function with(array $withArr)
     {
         $this->withArr = array_merge($this->withArr, $withArr);
+        return $this;
     }
 
     /**
@@ -129,7 +157,7 @@ class Builder extends ToSql implements Edition
         return $result;
     }
 
-    public function insertBefore(array $data, array $conflict)
+    public function previewInsert(array $data, array $conflict)
     {
         $this->useGuard();
         $sqlArr = [];
@@ -161,7 +189,7 @@ class Builder extends ToSql implements Edition
      */
     public function insert(array $data, array $conflict = [])
     {
-        return pg_affected_rows($this->execute($this->insertBefore($data, $conflict)));
+        return pg_affected_rows($this->execute($this->previewInsert($data, $conflict)));
     }
 
     public function delete()
@@ -174,7 +202,7 @@ class Builder extends ToSql implements Edition
         return pg_affected_rows($this->execute($execSql));
     }
 
-    public function updateBefore(array $data)
+    public function previewUpdate(array $data)
     {
         $this->useGuard();
         $setSql  = $this->toUpdatePrepare($data);
@@ -187,7 +215,7 @@ class Builder extends ToSql implements Edition
 
     public function update(array $data)
     {
-        return pg_affected_rows($this->execute($this->updateBefore($data)));
+        return pg_affected_rows($this->execute($this->previewUpdate($data)));
     }
 
     public function belongsTo(Relation $belongs)
@@ -195,7 +223,7 @@ class Builder extends ToSql implements Edition
         $this->belongs = $belongs;
     }
 
-    public function selectBefore()
+    public function previewSelect()
     {
         $this->useGuard();
         $columnSql = '*';
@@ -208,7 +236,7 @@ class Builder extends ToSql implements Edition
         }
         if (!is_null($this->union)) {
             $this->union->columns($this->columns);
-            $execSql .= ' ' . $this->union->selectBefore();
+            $execSql .= ' ' . $this->union->previewSelect();
         }
         if (count($this->sort)) {
             $execSql       .= ' order by ';
@@ -235,13 +263,13 @@ class Builder extends ToSql implements Edition
         if (count($this->sort) === 0) {
             $this->orderBy([$this->model->primaryKey => self::ORDER_BY_ASC]);
         }
-        $result = $this->execute($this->selectBefore());
+        $result = $this->execute($this->previewSelect());
         $data   = pg_fetch_all($result);
         if (is_bool($data)) {
             $data = [];
         }
         $face       = count($this->withArr) ? Collection::class : BaseCollection::class;
-        $collection = new $face($data, get_class($this->model));
+        $collection = new $face($data, $this->columns, get_class($this->model));
         if (count($this->withArr)) {
             $collection->withArr = array_map(function ($method) use ($collection) {
                 /** @var Builder $foreign */
@@ -289,7 +317,7 @@ class Builder extends ToSql implements Edition
     public function sum(string $key)
     {
         $this->columns(["sum($key)"]);
-        $result = $this->execute($this->selectBefore());
+        $result = $this->execute($this->previewSelect());
         if ($result === false) {
             return false;
         }
@@ -299,7 +327,7 @@ class Builder extends ToSql implements Edition
     public function avg(string $key)
     {
         $this->columns(["avg($key)"]);
-        $result = $this->execute($this->selectBefore());
+        $result = $this->execute($this->previewSelect());
         if ($result === false) {
             return false;
         }
@@ -309,7 +337,7 @@ class Builder extends ToSql implements Edition
     public function min(string $key)
     {
         $this->columns(["min($key)"]);
-        $result = $this->execute($this->selectBefore());
+        $result = $this->execute($this->previewSelect());
         if ($result === false) {
             return false;
         }
@@ -319,7 +347,7 @@ class Builder extends ToSql implements Edition
     public function max(string $key)
     {
         $this->columns(["max($key)"]);
-        $result = $this->execute($this->selectBefore());
+        $result = $this->execute($this->previewSelect());
         if ($result === false) {
             return false;
         }
@@ -329,10 +357,17 @@ class Builder extends ToSql implements Edition
     public function count()
     {
         $this->columns(["count({$this->model->primaryKey})"]);
-        $result = $this->execute($this->selectBefore());
+        $result = $this->execute($this->previewSelect());
         if ($result === false) {
             return false;
         }
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['count'];
+    }
+
+    public function keys($column)
+    {
+        return array_map(function ($row) use ($column) {
+            return $row[$column];
+        }, $this->columns([$column])->select()->toArray());
     }
 }
