@@ -256,7 +256,7 @@ class Builder extends ToSql implements Edition
     }
 
     /**
-     * @return Collection
+     * @return \LandPG\Collection|Collection
      */
     public function select()
     {
@@ -297,9 +297,9 @@ class Builder extends ToSql implements Edition
         $this->offset($perPage * ($page - 1));
         return [
             'data'     => $this->select()->toArray(),
-            'page'     => $page,
-            'per_page' => $perPage,
-            'amount'   => $amount->count()
+            'page'     => (int)$page,
+            'per_page' => (int)$perPage,
+            'amount'   => (int)$amount->count()
         ];
     }
 
@@ -308,6 +308,9 @@ class Builder extends ToSql implements Edition
         $this->union = $select;
     }
 
+    /**
+     * @return Model|null
+     */
     public function first()
     {
         $this->limit(1);
