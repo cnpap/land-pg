@@ -166,7 +166,7 @@ class Model implements ArrayAccess
     {
         $re      = new ReflectionClass($this);
         $comment = $re->getDocComment();
-        preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|float)\s+\$?([a-z_]+)@', $comment, $matches, PREG_SET_ORDER);
+        preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|array|float)\s+\$?([a-z_]+)@', $comment, $matches, PREG_SET_ORDER);
         if (count($matches)) {
             $attributes = $this->attributes;
             foreach ($matches as $match) {
@@ -177,6 +177,9 @@ class Model implements ArrayAccess
                             break;
                         case 'bool':
                             $attributes[$match[3]] = (bool)$attributes[$match[3]];
+                            break;
+                        case 'array':
+                            $attributes[$match[3]] = json_decode($attributes[$match[3]], true);
                             break;
                         case 'float':
                             $attributes[$match[3]] = (float)$attributes[$match[3]];

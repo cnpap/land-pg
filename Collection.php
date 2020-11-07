@@ -60,7 +60,7 @@ class Collection implements Iterator, Edition, ArrayAccess
     {
         $re      = new ReflectionClass(new $this->from);
         $comment = $re->getDocComment();
-        preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|float)\s+\$?([a-z_]+)@', $comment, $matches);
+        preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|array|float)\s+\$?([a-z_]+)@', $comment, $matches);
         if (count($matches)) {
             $sect = $matches[3];
             if (count($this->columns)) {
@@ -75,6 +75,9 @@ class Collection implements Iterator, Edition, ArrayAccess
                                 break;
                             case 'bool':
                                 $row[$matches[3][$sectK]] = (bool)$row[$matches[3][$sectK]];
+                                break;
+                            case 'array':
+                                $row[$matches[3][$sectK]] = json_decode($row[$matches[3][$sectK]], true);
                                 break;
                             case 'float':
                                 $row[$matches[3][$sectK]] = (float)$row[$matches[3][$sectK]];
