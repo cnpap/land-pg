@@ -61,6 +61,10 @@ class Collection implements Iterator, Edition, ArrayAccess
         $re      = new ReflectionClass(new $this->from);
         $comment = $re->getDocComment();
         preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|array|float)\s+\$?([a-z_]+)@', $comment, $matches);
+        $data = [];
+        foreach ($this as $row) {
+            $data[] = $row->toArray();
+        }
         if (count($matches)) {
             $sect = $matches[3];
             if (count($this->columns)) {
@@ -85,10 +89,10 @@ class Collection implements Iterator, Edition, ArrayAccess
                         }
                     }
                     return $row;
-                }, $this->data);
+                }, $data);
             }
         }
-        return $this->data;
+        return $data;
     }
 
     private function cleaned()
