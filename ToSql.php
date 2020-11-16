@@ -31,6 +31,9 @@ class ToSql
                 $sqlArr[] = $sqlStr . $this->guard->str($exp);
             } else if (is_array($exp)) {
                 $sqlArr[] = $sqlStr . $this->guard->when($exp);
+            } else if ($exp instanceof Builder) {
+                $exp->useGuard($this->guard);
+                $sqlArr[] = $sqlStr . '(' . $exp->previewSelect() . ')';
             }
         }
         return implode(', ', $sqlArr);
@@ -43,7 +46,7 @@ class ToSql
             $whereSqlArr = [];
             foreach ($whereExp as $exp) {
                 $sqlStr = $exp[0] . " {$exp[1]} ";
-                $value = $exp[2];
+                $value  = $exp[2];
                 if (is_string($value) || is_numeric($value) || is_float($value)) {
                     $whereSqlArr[] = $sqlStr . $this->guard->str($value);
                 } else if (is_array($value)) {
