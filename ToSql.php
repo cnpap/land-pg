@@ -26,14 +26,15 @@ class ToSql
     {
         $sqlArr = [];
         foreach ($data as $column => $exp) {
-            $sqlStr = "$column = ";
             if (is_string($exp) || is_numeric($exp) || is_float($exp)) {
-                $sqlArr[] = $sqlStr . $this->guard->str($exp);
+                $sqlArr[] = "$column = " . $this->guard->str($exp);
             } else if (is_array($exp)) {
-                $sqlArr[] = $sqlStr . $this->guard->when($exp);
+                $sqlArr[] = "$column = " . $this->guard->when($exp);
             } else if ($exp instanceof Builder) {
                 $exp->useGuard($this->guard);
-                $sqlArr[] = $sqlStr . '(' . $exp->previewSelect() . ')';
+                $sqlArr[] = "$column = " . '(' . $exp->previewSelect() . ')';
+            } else {
+                $sqlArr[] = $column;
             }
         }
         return implode(', ', $sqlArr);
