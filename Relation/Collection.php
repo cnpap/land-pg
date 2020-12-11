@@ -22,7 +22,15 @@ class Collection extends BaseCollection
         foreach ($this->withArr as $with) {
             /** @var Relation $belongs */
             list($method, $belongs) = $with;
-            $data[$method] = $belongs->fetch($data);
+            $more = $belongs->fetch($data);
+            if (!(bool)$more) {
+                if ($belongs instanceof BelongsTo) {
+                    $more = null;
+                } else {
+                    $more = [];
+                }
+            }
+            $data[$method] = $more;
         }
         if ($instance) {
             return new $this->from($data);

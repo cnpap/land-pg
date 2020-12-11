@@ -271,11 +271,16 @@ class Builder extends ToSql implements Edition
         $face       = count($this->withArr) ? Collection::class : BaseCollection::class;
         $collection = new $face($data, $this->columns, get_class($this->model));
         if (count($this->withArr)) {
-            $collection->withArr = array_map(function ($method) use ($collection) {
+            $collection->withArr = array_map(function ($with) use ($collection) {
+                $item   = explode(':', $with);
+                $params = [];
+                if (isset($item[1])) {
+                    $params = explode(',', $item[1]);
+                }
                 /** @var Builder $foreign */
-                $foreign = $this->model->{$method}();
+                $foreign = $this->model->{$item[0]}(...$params);
                 $foreign->belongs->batch($collection);
-                return [$method, $foreign->belongs];
+                return [$item[0], $foreign->belongs];
             }, $this->withArr);
         }
         return $collection;
@@ -306,6 +311,7 @@ class Builder extends ToSql implements Edition
     public function union(Builder $select)
     {
         $this->union = $select;
+        return $this;
     }
 
     /**

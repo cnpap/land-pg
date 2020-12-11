@@ -19,15 +19,6 @@ class BelongsTo extends Relation
         $this->first = $first;
     }
 
-    function attach()
-    {
-        $localKey = $this->model->{$this->localKey};
-        $this->foreign->where($this->foreignKey, '=', $localKey);
-        if ($this->first) {
-            $this->foreign->limit(1);
-        }
-    }
-
     function batch(Collection $collection)
     {
         $localKeys = $collection->one($this->localKey);

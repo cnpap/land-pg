@@ -4,7 +4,6 @@ namespace LandPG;
 
 use Iterator;
 use ArrayAccess;
-use ReflectionClass;
 use ReflectionException;
 
 class Collection implements Iterator, Edition, ArrayAccess
@@ -58,39 +57,8 @@ class Collection implements Iterator, Edition, ArrayAccess
      */
     function toArray()
     {
-        $re      = new ReflectionClass(new $this->from);
-        $comment = $re->getDocComment();
-        preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|array|float)\s+\$?([a-z_]+)@', $comment, $matches);
-        $data = [];
         foreach ($this as $row) {
             $data[] = $row->toArray();
-        }
-        if (count($matches)) {
-            $sect = $matches[3];
-            if (count($this->columns)) {
-                $sect = array_intersect($sect, $this->columns);
-            }
-            if (count($sect)) {
-                return array_map(function ($row) use ($matches, $sect) {
-                    foreach ($sect as $sectK => $sectV) {
-                        switch ($matches[2][$sectK]) {
-                            case 'int':
-                                $row[$matches[3][$sectK]] = (int)$row[$matches[3][$sectK]];
-                                break;
-                            case 'bool':
-                                $row[$matches[3][$sectK]] = (bool)$row[$matches[3][$sectK]];
-                                break;
-                            case 'array':
-                                $row[$matches[3][$sectK]] = json_decode($row[$matches[3][$sectK]], true);
-                                break;
-                            case 'float':
-                                $row[$matches[3][$sectK]] = (float)$row[$matches[3][$sectK]];
-                                break;
-                        }
-                    }
-                    return $row;
-                }, $data);
-            }
         }
         return $data;
     }

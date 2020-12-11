@@ -27,14 +27,6 @@ class BelongsToMiddle extends Relation
         $this->ofForeignKey = $ofForeignKey;
     }
 
-    public function attach()
-    {
-        $localKey = $this->model->{$this->localKey};
-        $this->middle->columns([$this->ofForeignKey]);
-        $this->middle->where($this->ofLocalKey, '=', $localKey);
-        $this->dev();
-    }
-
     public function batch(Collection $collection)
     {
         $localKeys = $collection->one($this->localKey);
