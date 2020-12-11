@@ -18,8 +18,6 @@ abstract class Relation
 
     protected Collection $data;
 
-    abstract public function attach();
-
     abstract public function batch(Collection $collection);
 
     abstract public function fetch(array $localRow);
