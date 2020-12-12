@@ -3,12 +3,12 @@
 namespace LandPG;
 
 use Closure;
+use JetBrains\PhpStorm\Pure;
 use Throwable;
 use ArrayAccess;
 use LandPG\Relation\BelongsTo;
 use LandPG\Relation\BelongsToMiddle;
 use ReflectionClass;
-use ReflectionException;
 
 class Model implements ArrayAccess
 {
@@ -30,14 +30,11 @@ class Model implements ArrayAccess
 
     public string $primaryKey = 'id';
 
-    protected array $attributes = [];
-
-    function __construct(array $attributes = [])
+    function __construct(public array $attributes = [])
     {
-        $this->attributes = $attributes;
     }
 
-    function __get($name)
+    function __get($name): mixed
     {
         return $this->attributes[$name] ?? null;
     }
@@ -47,7 +44,7 @@ class Model implements ArrayAccess
         $this->attributes[$name] = $value;
     }
 
-    function getConn()
+    function getConn(): mixed
     {
         return pg_connect("host={$this->host} port={$this->port} dbname={$this->database} user={$this->username} password={$this->password}");
     }
@@ -57,7 +54,7 @@ class Model implements ArrayAccess
      * @return false
      * @throws Throwable
      */
-    public function transaction(Closure $process)
+    public function transaction(Closure $process): mixed
     {
         $begin = $this->begin();
         if ($begin === false) {
@@ -80,7 +77,7 @@ class Model implements ArrayAccess
         }
     }
 
-    public function begin()
+    public function begin(): bool
     {
         $conn = $this->getConn();
         if (pg_result_status(pg_exec($conn, "begin")) !== PGSQL_COMMAND_OK) {
@@ -89,7 +86,7 @@ class Model implements ArrayAccess
         return true;
     }
 
-    public function rollback()
+    public function rollback(): bool
     {
         $conn = $this->getConn();
         if (pg_result_status(pg_exec($conn, "rollback")) !== PGSQL_COMMAND_OK) {
@@ -98,7 +95,7 @@ class Model implements ArrayAccess
         return true;
     }
 
-    public function commit()
+    public function commit(): bool
     {
         $conn = $this->getConn();
         if (pg_result_status(pg_exec($conn, "commit")) !== PGSQL_COMMAND_OK) {
@@ -107,62 +104,59 @@ class Model implements ArrayAccess
         return true;
     }
 
-    function getTable()
+    function getTable(): string
     {
         return $this->prefix . $this->table . $this->suffix;
     }
 
-    static public function query()
+    #[Pure]
+    static public function query(): Builder
     {
         return new Builder(new static());
     }
 
-    public function hasOne(Builder $foreign, string $localKey, string $foreignKey)
+    public function hasOne(Builder $foreign, string $localKey, string $foreignKey): Builder
     {
         $belongsTo = new BelongsTo($this, $foreign, $localKey, $foreignKey, true);
         $foreign->belongsTo($belongsTo);
         return $foreign;
     }
 
-    public function hasMany(Builder $foreign, string $localKey, string $foreignKey)
+    public function hasMany(Builder $foreign, string $localKey, string $foreignKey): Builder
     {
         $belongsTo = new BelongsTo($this, $foreign, $localKey, $foreignKey, false);
         $foreign->belongsTo($belongsTo);
         return $foreign;
     }
 
-    public function hasMiddle(Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey)
+    public function hasMiddle(Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey): Builder
     {
         $belongsToMiddle = new BelongsToMiddle($this, $foreign, $middle, $localKey, $ofLocalKey, $foreignKey, $ofForeignKey);
         $foreign->belongsTo($belongsToMiddle);
         return $foreign;
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->attributes[$offset]);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->{$offset};
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->{$offset} = $value;
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->attributes[$offset]);
     }
 
-    /**
-     * @return array
-     * @throws ReflectionException
-     */
-    public function toArray()
+    public function toArray(): array
     {
         $re      = new ReflectionClass($this);
         $comment = $re->getDocComment();

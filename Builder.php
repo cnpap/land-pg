@@ -11,13 +11,11 @@ use LandPG\Collection as BaseCollection;
 
 class Builder extends ToSql implements Edition
 {
-    protected Model $model;
-
     protected array $columns = [];
 
     protected array $whereExp = [];
 
-    protected ?Relation $belongs = null;
+    protected Relation|null $belongs = null;
 
     protected int $limitNum = 0;
 
@@ -25,7 +23,7 @@ class Builder extends ToSql implements Edition
 
     protected array $withArr = [];
 
-    protected ?Builder $union = null;
+    protected Builder|null $union = null;
 
     public const ORDER_BY_ASC = 'asc';
 
@@ -33,12 +31,11 @@ class Builder extends ToSql implements Edition
 
     protected array $sort = [];
 
-    public function __construct(Model $model)
+    public function __construct(public Model $model)
     {
-        $this->model = $model;
     }
 
-    public function columns(array $columns)
+    public function columns(array $columns): Builder
     {
         $this->columns = array_merge($this->columns, $columns);
         return $this;
@@ -64,7 +61,7 @@ class Builder extends ToSql implements Edition
      *
      * @see bool $merge 如果传递 false 则 where 通过 or 分割
      */
-    public function where(string $column, string $char, $value, bool $merge = true)
+    public function where(string $column, string $char, $value, bool $merge = true): Builder
     {
         $exps = [[$column, $char, $value]];
         if ($merge && count($this->whereExp)) {
@@ -76,7 +73,7 @@ class Builder extends ToSql implements Edition
         return $this;
     }
 
-    public function when($exp, Closure $next)
+    public function when($exp, Closure $next): Builder
     {
         if ((bool)$exp) {
             $next($this, $exp);
@@ -84,65 +81,31 @@ class Builder extends ToSql implements Edition
         return $this;
     }
 
-    /**
-     * @param array $sort
-     *
-     * @return $this
-     *
-     * @see $sort
-     * [
-     *     column1 => 'asc',
-     *     column2 => 'desc'
-     * ]
-     */
-    public function orderBy(array $sort)
+    public function orderBy(array $sort): Builder
     {
         $this->sort = $sort;
         return $this;
     }
 
-    /**
-     * @param int $limitNum
-     * @return $this
-     */
-    public function limit(int $limitNum)
+    public function limit(int $limitNum): Builder
     {
         $this->limitNum = $limitNum;
         return $this;
     }
 
-    /**
-     * @param int $offsetNum
-     * @return $this
-     */
-    public function offset(int $offsetNum)
+    public function offset(int $offsetNum): Builder
     {
         $this->offsetNum = $offsetNum;
         return $this;
     }
 
-    /**
-     * @param array $withArr
-     * @return $this
-     *
-     * @see array $withArr
-     * [
-     *     a instanceOF LandPG\Relation\Relation::class object,
-     *     a instanceOF LandPG\Relation\Relation::class object,
-     *     ....
-     * ]
-     */
-    public function with(array $withArr)
+    public function with(array $withArr): Builder
     {
         $this->withArr = array_merge($this->withArr, $withArr);
         return $this;
     }
 
-    /**
-     * @param $sql
-     * @return resource
-     */
-    protected function execute($sql)
+    protected function execute($sql): mixed
     {
         $conn = $this->model->getConn();
         $id   = uniqid();
@@ -157,7 +120,7 @@ class Builder extends ToSql implements Edition
         return $result;
     }
 
-    public function previewInsert(array $data, array $conflict)
+    public function previewInsert(array $data, array $conflict): mixed
     {
         $this->useGuard();
         $sqlArr = [];
@@ -177,22 +140,12 @@ class Builder extends ToSql implements Edition
         return $execSql;
     }
 
-    /**
-     * @param array $data
-     * @param array $conflict
-     *
-     * @return int
-     *
-     * @see $data        二维数组, 一个或多个键值, 做为新增数据
-     * @see $conflict[0] 一维数组, 一个或多个字段用作判断信息是否存在, 如果存在则舍弃新增, 执行子查询
-     * @see $conflict[1] 一维数组, 没有数据, 则无子查询, 如果有数据, 则作为 update 的变更数据
-     */
-    public function insert(array $data, array $conflict = [])
+    public function insert(array $data, array $conflict = []): mixed
     {
         return pg_affected_rows($this->execute($this->previewInsert($data, $conflict)));
     }
 
-    public function delete()
+    public function delete(): mixed
     {
         $this->useGuard();
         $execSql = "delete" . " from " . $this->model->getTable();
@@ -202,7 +155,7 @@ class Builder extends ToSql implements Edition
         return pg_affected_rows($this->execute($execSql));
     }
 
-    public function previewUpdate(array $data)
+    public function previewUpdate(array $data): mixed
     {
         $this->useGuard();
         $setSql  = $this->toUpdatePrepare($data);
@@ -213,7 +166,7 @@ class Builder extends ToSql implements Edition
         return $execSql;
     }
 
-    public function update(array $data)
+    public function update(array $data): mixed
     {
         return pg_affected_rows($this->execute($this->previewUpdate($data)));
     }
@@ -223,7 +176,7 @@ class Builder extends ToSql implements Edition
         $this->belongs = $belongs;
     }
 
-    public function previewSelect()
+    public function previewSelect(): mixed
     {
         $this->useGuard();
         $columnSql = '*';
@@ -255,10 +208,7 @@ class Builder extends ToSql implements Edition
         return $execSql;
     }
 
-    /**
-     * @return \LandPG\Collection|Collection
-     */
-    public function select()
+    public function select(): mixed
     {
         if (count($this->sort) === 0) {
             $this->orderBy([$this->model->primaryKey => self::ORDER_BY_ASC]);
@@ -286,7 +236,7 @@ class Builder extends ToSql implements Edition
         return $collection;
     }
 
-    public function page($page = null, $perPage = null)
+    public function page($page = null, $perPage = null): mixed
     {
         if (is_null($page)) {
             $page    = $_GET['page'];
@@ -308,22 +258,19 @@ class Builder extends ToSql implements Edition
         ];
     }
 
-    public function union(Builder $select)
+    public function union(Builder $select): Builder
     {
         $this->union = $select;
         return $this;
     }
 
-    /**
-     * @return Model|null
-     */
-    public function first()
+    public function first(): Model|null
     {
         $this->limit(1);
         return $this->select()->current();
     }
 
-    public function sum(string $key)
+    public function sum(string $key): int|float
     {
         $this->columns(["sum($key)"]);
         $result = $this->execute($this->previewSelect());
@@ -333,7 +280,7 @@ class Builder extends ToSql implements Edition
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['sum'];
     }
 
-    public function avg(string $key)
+    public function avg(string $key): float|int
     {
         $this->columns(["avg($key)"]);
         $result = $this->execute($this->previewSelect());
@@ -343,7 +290,7 @@ class Builder extends ToSql implements Edition
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['avg'];
     }
 
-    public function min(string $key)
+    public function min(string $key): float|int
     {
         $this->columns(["min($key)"]);
         $result = $this->execute($this->previewSelect());
@@ -353,7 +300,7 @@ class Builder extends ToSql implements Edition
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['min'];
     }
 
-    public function max(string $key)
+    public function max(string $key): float|int
     {
         $this->columns(["max($key)"]);
         $result = $this->execute($this->previewSelect());
@@ -363,7 +310,7 @@ class Builder extends ToSql implements Edition
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['max'];
     }
 
-    public function count()
+    public function count(): int
     {
         $this->columns(["count({$this->model->primaryKey})"]);
         $result = $this->execute($this->previewSelect());
@@ -373,7 +320,7 @@ class Builder extends ToSql implements Edition
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['count'];
     }
 
-    public function keys($column)
+    public function keys($column): array
     {
         return array_map(function ($row) use ($column) {
             return $row[$column];
