@@ -174,22 +174,14 @@ class Model implements ArrayAccess
         preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|array|float)\s+\$?([a-z_]+)@', $comment, $matches, PREG_SET_ORDER);
         if (count($matches)) {
             $attributes = $this->attributes;
-            foreach ($matches as $match) {
-                if (isset($attributes[$match[3]])) {
-                    switch ($match[2]) {
-                        case 'int':
-                            $attributes[$match[3]] = (int)$attributes[$match[3]];
-                            break;
-                        case 'bool':
-                            $attributes[$match[3]] = (bool)$attributes[$match[3]];
-                            break;
-                        case 'array':
-                            $attributes[$match[3]] = json_decode($attributes[$match[3]], true);
-                            break;
-                        case 'float':
-                            $attributes[$match[3]] = (float)$attributes[$match[3]];
-                            break;
-                    }
+            foreach ($matches as $matched) {
+                if (isset($attributes[$matched[3]])) {
+                    match ($matched[2]) {
+                        'int' => $attributes[$matched[3]] = (int)$attributes[$matched[3]],
+                        'array' => $attributes[$matched[3]] = json_decode($attributes[$matched[3]], true),
+                        'bool' => $attributes[$matched[3]] = (bool)$attributes[$matched[3]],
+                        'float' => $attributes[$matched[3]] = (float)$attributes[$matched[3]]
+                    };
                 }
             }
             return $attributes;
