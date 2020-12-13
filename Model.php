@@ -156,6 +156,16 @@ class Model implements ArrayAccess
         unset($this->attributes[$offset]);
     }
 
+    public function save()
+    {
+        $builder = new Builder(new static());
+        if (isset($this->attributes[$this->primaryKey])) {
+            $builder->where($this->primaryKey, '=', $this->attributes[$this->primaryKey]);
+            unset($this->attributes[$this->primaryKey]);
+        }
+        return $builder->update($this->attributes);
+    }
+
     public function toArray(): array
     {
         $re      = new ReflectionClass($this);

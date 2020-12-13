@@ -3,6 +3,7 @@
 namespace LandPG;
 
 use Closure;
+use JetBrains\PhpStorm\ArrayShape;
 use LandPG\Exception\ConnException;
 use LandPG\Exception\SqlExecException;
 use LandPG\Relation\Relation;
@@ -142,7 +143,12 @@ class Builder extends ToSql implements Edition
 
     public function insert(array $data, array $conflict = []): mixed
     {
-        return pg_affected_rows($this->execute($this->previewInsert($data, $conflict)));
+        return pg_affected_rows($this->execute($this->previewInsert([$data], $conflict)));
+    }
+
+    public function insertMany(array $data, array $conflict = []): mixed
+    {
+        return pg_affected_rows($this->execute($this->previewInsert($data, $conflict)));    
     }
 
     public function delete(): mixed
@@ -236,6 +242,12 @@ class Builder extends ToSql implements Edition
         return $collection;
     }
 
+    #[ArrayShape([
+        'data'     => "",
+        'page'     => "int",
+        'per_page' => "int",
+        'amount'   => "int"
+    ])]
     public function page($page = null, $perPage = null): mixed
     {
         if (is_null($page)) {
