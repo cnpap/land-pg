@@ -62,8 +62,12 @@ class Builder extends ToSql implements Edition
      *
      * @see bool $merge 如果传递 false 则 where 通过 or 分割
      */
-    public function where(string $column, string $char, $value, bool $merge = true): Builder
+    public function where(string $column, string $char, $value = null, bool $merge = true): Builder
     {
+        if ($value !== null && $char !== '=') {
+            $value = $char;
+            $char  = '=';
+        }
         $exps = [[$column, $char, $value]];
         if ($merge && count($this->whereExp)) {
             $endWhere                                   = array_merge(end($this->whereExp), $exps);
@@ -148,7 +152,7 @@ class Builder extends ToSql implements Edition
 
     public function insertMany(array $data, array $conflict = []): mixed
     {
-        return pg_affected_rows($this->execute($this->previewInsert($data, $conflict)));    
+        return pg_affected_rows($this->execute($this->previewInsert($data, $conflict)));
     }
 
     public function delete(): mixed
