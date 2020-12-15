@@ -4,7 +4,6 @@ namespace LandPG;
 
 use Iterator;
 use ArrayAccess;
-use ReflectionException;
 
 class Collection implements Iterator, Edition, ArrayAccess
 {
@@ -51,12 +50,9 @@ class Collection implements Iterator, Edition, ArrayAccess
         $this->index = 0;
     }
 
-    /**
-     * @return array
-     * @throws ReflectionException
-     */
     function toArray()
     {
+        $data = [];
         foreach ($this as $row) {
             $data[] = $row->toArray();
         }

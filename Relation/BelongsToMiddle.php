@@ -18,20 +18,19 @@ class BelongsToMiddle extends Relation
 
     function __construct(Model $model, Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey)
     {
-        $this->model = $model;
-        $this->foreign = $foreign;
-        $this->middle = $middle;
-        $this->localKey = $localKey;
-        $this->ofLocalKey = $ofLocalKey;
-        $this->foreignKey = $foreignKey;
+        $this->model        = $model;
+        $this->foreign      = $foreign;
+        $this->middle       = $middle;
+        $this->localKey     = $localKey;
+        $this->ofLocalKey   = $ofLocalKey;
+        $this->foreignKey   = $foreignKey;
         $this->ofForeignKey = $ofForeignKey;
     }
 
     public function batch(Collection $collection)
     {
         $localKeys = $collection->one($this->localKey);
-        $this->middle->columns([$this->ofLocalKey, $this->ofForeignKey]);
-        $this->middle->where($this->ofLocalKey, 'in', $localKeys);
+        $this->middle->columns([$this->ofLocalKey, $this->ofForeignKey])->where($this->ofLocalKey, 'in', $localKeys);
         $this->dev();
         $this->data = $this->foreign->select();
     }
@@ -39,11 +38,11 @@ class BelongsToMiddle extends Relation
     public function dev()
     {
         $this->middleCol = $this->middle->select();
-        $originKeys = $this->middleCol->one($this->ofForeignKey);
+        $originKeys      = $this->middleCol->one($this->ofForeignKey);
         $this->foreign->where($this->foreignKey, 'in', $originKeys);
     }
 
-    function fetch(array $localRow)
+    function fetch(array $localRow): array
     {
         $middleKeys = [];
         for ($i = 0; $i < $this->middleCol->count(); $i++) {
@@ -60,5 +59,22 @@ class BelongsToMiddle extends Relation
             }
         }
         return $result;
+    }
+
+    function sync(array $ps)
+    {
+        $key  = $this->model->{$this->model->primaryKey};
+        $rows = (clone $this->middle)->where($this->ofLocalKey, $key)->delete();
+        if ($rows < 1) {
+            return false;
+        }
+        $data = [];
+        foreach ($ps as $p) {
+            $data[] = [
+                $this->ofLocalKey   => $key,
+                $this->ofForeignKey => $p
+            ];
+        }
+        return (clone $this->middle)->insertMany($data);
     }
 }

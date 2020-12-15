@@ -6,6 +6,7 @@ use Closure;
 use JetBrains\PhpStorm\ArrayShape;
 use LandPG\Exception\ConnException;
 use LandPG\Exception\SqlExecException;
+use LandPG\Relation\BelongsToMiddle;
 use LandPG\Relation\Relation;
 use LandPG\Relation\Collection;
 use LandPG\Collection as BaseCollection;
@@ -64,7 +65,7 @@ class Builder extends ToSql implements Edition
      */
     public function where(string $column, string $char, $value = null, bool $merge = true): Builder
     {
-        if ($value !== null && $char !== '=') {
+        if ($value === null && $char !== '=') {
             $value = $char;
             $char  = '=';
         }
@@ -218,7 +219,7 @@ class Builder extends ToSql implements Edition
         return $execSql;
     }
 
-    public function select(): mixed
+    public function select(): BaseCollection
     {
         if (count($this->sort) === 0) {
             $this->orderBy([$this->model->primaryKey => self::ORDER_BY_ASC]);
@@ -232,18 +233,24 @@ class Builder extends ToSql implements Edition
         $collection = new $face($data, $this->columns, get_class($this->model));
         if (count($this->withArr)) {
             $collection->withArr = array_map(function ($with) use ($collection) {
-                $item   = explode(':', $with);
-                $params = [];
-                if (isset($item[1])) {
-                    $params = explode(',', $item[1]);
-                }
+                [$method, $params] = $this->relationParams($with);
                 /** @var Builder $foreign */
-                $foreign = $this->model->{$item[0]}(...$params);
+                $foreign = $this->model->{$method}(...$params);
                 $foreign->belongs->batch($collection);
-                return [$item[0], $foreign->belongs];
+                return [$method[0], $foreign->belongs];
             }, $this->withArr);
         }
         return $collection;
+    }
+
+    function relationParams($data): array
+    {
+        $item   = explode(':', $data);
+        $params = [];
+        if (isset($item[1])) {
+            $params = explode(',', $item[1]);
+        }
+        return [$item[0], $params];
     }
 
     #[ArrayShape([
@@ -341,5 +348,14 @@ class Builder extends ToSql implements Edition
         return array_map(function ($row) use ($column) {
             return $row[$column];
         }, $this->columns([$column])->select()->toArray());
+    }
+
+    public function sync($data)
+    {
+        if ($this->belongs instanceof BelongsToMiddle) {
+            return $this->belongs->sync($data);
+        } else {
+            return false;
+        }
     }
 }

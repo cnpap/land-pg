@@ -12,21 +12,26 @@ class BelongsTo extends Relation
 
     function __construct(Model $model, Builder $foreign, string $localKey, string $foreignKey, bool $first = false)
     {
-        $this->model = $model;
-        $this->foreign = $foreign;
-        $this->localKey = $localKey;
+        $this->model      = $model;
+        $this->foreign    = $foreign;
+        $this->localKey   = $localKey;
         $this->foreignKey = $foreignKey;
-        $this->first = $first;
+        $this->first      = $first;
     }
 
     function batch(Collection $collection)
     {
-        $localKeys = $collection->one($this->localKey);
-        $this->foreign->where($this->foreignKey, 'in', $localKeys);
-        $this->data = $this->foreign->select();
+        $this->data = $this
+            ->foreign
+            ->where(
+                $this->foreignKey,
+                'in',
+                $collection->one($this->localKey)
+            )
+            ->select();
     }
 
-    function fetch(array $localRow)
+    function fetch(array $localRow): array
     {
         $result = [];
         /** @var Model $foreignRow */
