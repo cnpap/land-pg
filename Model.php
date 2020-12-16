@@ -62,7 +62,7 @@ class Model implements ArrayAccess
         }
         try {
             $result = $process();
-            if ($result === false) {
+            if (!$result) {
                 $this->rollback();
                 return false;
             }
