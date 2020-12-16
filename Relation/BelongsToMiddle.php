@@ -61,20 +61,24 @@ class BelongsToMiddle extends Relation
         return $result;
     }
 
-    function sync(array $ps)
+    function sync(array $ps = [])
     {
         $key  = $this->model->{$this->model->primaryKey};
         $rows = (clone $this->middle)->where($this->ofLocalKey, $key)->delete();
-        if ($rows < 1) {
+        if ($rows === false) {
             return false;
         }
-        $data = [];
-        foreach ($ps as $p) {
-            $data[] = [
-                $this->ofLocalKey   => $key,
-                $this->ofForeignKey => $p
-            ];
+        if (count($ps)) {
+            $data = [];
+            foreach ($ps as $p) {
+                $data[] = [
+                    $this->ofLocalKey   => $key,
+                    $this->ofForeignKey => $p
+                ];
+            }
+            return (clone $this->middle)->insertMany($data);
+        } else {
+            return true;
         }
-        return (clone $this->middle)->insertMany($data);
     }
 }
