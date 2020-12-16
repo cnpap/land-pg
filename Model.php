@@ -72,7 +72,7 @@ class Model implements ArrayAccess
             }
             return $result;
         } catch (Throwable $e) {
-            $this->commit();
+            $this->rollback();
             throw $e;
         }
     }
