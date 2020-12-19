@@ -241,7 +241,7 @@ class Builder extends ToSql implements Edition
                 /** @var Builder $foreign */
                 $foreign = $this->model->{$method}(...$params);
                 $foreign->belongs->batch($collection);
-                return [$method[0], $foreign->belongs];
+                return [$method, $foreign->belongs];
             }, $this->withArr);
         }
         return $collection;
