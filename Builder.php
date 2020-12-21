@@ -354,10 +354,10 @@ class Builder extends ToSql implements Edition
         }, $this->columns([$column])->select()->toArray());
     }
 
-    public function sync($data)
+    public function sync($data, $fixed = [])
     {
         if ($this->belongs instanceof BelongsToMiddle) {
-            return $this->belongs->sync($data);
+            return $this->belongs->sync($data, $fixed);
         } else {
             return false;
         }
