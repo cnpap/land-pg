@@ -22,7 +22,7 @@ class ToSql
         }
     }
 
-    protected function toUpdatePrepare($data)
+    protected function toUpdatePrepare($data): string
     {
         $sqlArr = [];
         foreach ($data as $column => $exp) {
@@ -33,6 +33,8 @@ class ToSql
             } else if ($exp instanceof Builder) {
                 $exp->useGuard($this->guard);
                 $sqlArr[] = "$column = " . '(' . $exp->previewSelect() . ')';
+            } else if ($exp === null) {
+                $sqlArr[] = "$column = null";
             } else {
                 $sqlArr[] = $column;
             }
@@ -40,7 +42,7 @@ class ToSql
         return implode(', ', $sqlArr);
     }
 
-    protected function toWhereSqlPrepare()
+    protected function toWhereSqlPrepare(): string
     {
         $sqlArr = [];
         foreach ($this->whereExp as $whereExp) {
@@ -55,6 +57,8 @@ class ToSql
                 } else if ($value instanceof Builder) {
                     $value->useGuard($this->guard);
                     $whereSqlArr[] = $sqlStr . '(' . $value->previewSelect() . ')';
+                } else if ($value === null) {
+                    $whereSqlArr[] = $sqlStr . 'null';
                 }
             }
             $sqlArr[] = implode(' and ', $whereSqlArr);
