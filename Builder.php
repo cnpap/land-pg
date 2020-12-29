@@ -47,6 +47,19 @@ class Builder extends ToSql implements Edition
         return $this;
     }
 
+    public function getColumnKeys(): array
+    {
+        $keys = [];
+        foreach ($this->columns as $columnK => $columnV) {
+            if (is_numeric($columnK)) {
+                $keys[] = $columnV;
+            } else {
+                $keys[] = $columnK;
+            }
+        }
+        return $keys;
+    }
+
     /**
      * @param string $column
      * @param string $char
@@ -130,15 +143,22 @@ class Builder extends ToSql implements Edition
         return $result;
     }
 
-    public function previewInsert(array $data, array $conflict): mixed
+    public function previewInsert($data, array $conflict): mixed
     {
         $this->useGuard();
-        $sqlArr = [];
-        foreach ($data as $row) {
-            $sqlArr[] = $this->guard->arr(array_values($row));
+        $execSql = 'insert into ' . $this->model->getTable();
+        if ($data instanceof Builder) {
+            $data->useGuard($this->guard);
+            $setColumnSql = implode(', ', $data->getColumnKeys());
+            $execSql      .= " ($setColumnSql) " . $data->previewSelect();
+        } else {
+            $sqlArr = [];
+            foreach ($data as $row) {
+                $sqlArr[] = $this->guard->arr(array_values($row));
+            }
+            $setColumnSql = implode(', ', array_keys($data[0]));
+            $execSql      = "insert into " . $this->model->getTable() . " ($setColumnSql) values " . implode(', ', $sqlArr);
         }
-        $setColumnSql = implode(', ', array_keys($data[0]));
-        $execSql      = "insert into " . $this->model->getTable() . " ($setColumnSql) values " . implode(', ', $sqlArr);
         if (count($conflict)) {
             $columnSql = implode(', ', $conflict[0]);
             if (count($conflict[1])) {
@@ -150,12 +170,16 @@ class Builder extends ToSql implements Edition
         return $execSql;
     }
 
-    public function insert(array $data, array $conflict = []): mixed
+    public function insert($data, array $conflict = []): mixed
     {
-        return pg_affected_rows($this->execute($this->previewInsert([$data], $conflict)));
+        if ($data instanceof Builder) {
+            return pg_affected_rows($this->execute($this->previewInsert($data->limit(1), $conflict)));
+        } else {
+            return pg_affected_rows($this->execute($this->previewInsert([$data], $conflict)));
+        }
     }
 
-    public function insertMany(array $data, array $conflict = []): mixed
+    public function insertMany($data, array $conflict = []): mixed
     {
         return pg_affected_rows($this->execute($this->previewInsert($data, $conflict)));
     }
@@ -196,7 +220,15 @@ class Builder extends ToSql implements Edition
         $this->useGuard();
         $columnSql = '*';
         if (count($this->columns)) {
-            $columnSql = implode(', ', $this->columns);
+            $columnArr = [];
+            foreach ($this->columns as $columnK => $columnV) {
+                if (is_numeric($columnK)) {
+                    $columnArr[] = $columnV;
+                } else {
+                    $columnArr[] = "$columnV as $columnK";
+                }
+            }
+            $columnSql = implode(', ', $columnArr);
         }
         $execSql = "select $columnSql from " . $this->model->getTable();
         if (count($this->whereExp)) {

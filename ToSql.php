@@ -11,7 +11,7 @@ namespace LandPG;
  */
 class ToSql
 {
-    protected ?Guard $guard = null;
+    public ?Guard $guard = null;
 
     public function useGuard(Guard $guard = null)
     {

@@ -61,14 +61,21 @@ class BelongsToMiddle extends Relation
         return $result;
     }
 
-    function sync(array $ps = [], array $fixed = [])
+    function sync($ps = [], array $fixed = [])
     {
         $key  = $this->model->{$this->model->primaryKey};
         $rows = (clone $this->middle)->where($this->ofLocalKey, $key)->delete();
         if ($rows === false) {
             return false;
         }
-        if (count($ps)) {
+        if ($ps instanceof Builder) {
+            $ps->columns([
+                $this->ofLocalKey   => $key,
+                $this->ofForeignKey => $this->foreignKey,
+                ...$fixed
+            ]);
+            return (clone $this->middle)->insertMany($ps);
+        } else {
             $data = [];
             foreach ($ps as $p) {
                 $data[] = [
@@ -78,8 +85,6 @@ class BelongsToMiddle extends Relation
                 ];
             }
             return (clone $this->middle)->insertMany($data);
-        } else {
-            return true;
         }
     }
 }
