@@ -390,19 +390,19 @@ class Builder extends ToSql implements Edition
         }, $this->columns([$column])->select()->toArray());
     }
 
-    public function detach($ids = null): bool
+    public function detach($ids = null)
     {
         if ($this->belongs instanceof BelongsToMiddle) {
-            return $this->belongs->detach($ids) !== false;
+            return $this->belongs->detach($ids);
         } else {
             return false;
         }
     }
 
-    public function attach($ids, $fixed = []): bool
+    public function attach($ids, $fixed = [])
     {
         if ($this->belongs instanceof BelongsToMiddle) {
-            return $this->belongs->attach($ids, $fixed) === false;
+            return $this->belongs->attach($ids, $fixed);
         } else {
             return false;
         }
