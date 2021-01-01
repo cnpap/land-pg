@@ -62,7 +62,7 @@ class Builder extends ToSql implements Edition
 
     /**
      * @param string $column
-     * @param string $char
+     * @param $char
      * @param $value
      * @param bool $merge
      *
@@ -80,7 +80,7 @@ class Builder extends ToSql implements Edition
      *
      * @see bool $merge 如果传递 false 则 where 通过 or 分割
      */
-    public function where(string $column, string $char, $value = null, bool $merge = true): Builder
+    public function where(string $column, $char, $value = null, bool $merge = true): Builder
     {
         if ($value === null && $char !== '=') {
             $value = $char;
@@ -386,7 +386,25 @@ class Builder extends ToSql implements Edition
         }, $this->columns([$column])->select()->toArray());
     }
 
-    public function sync($data, $fixed = [])
+    public function detach(): bool
+    {
+        if ($this->belongs instanceof BelongsToMiddle) {
+            return $this->belongs->detach() !== false;
+        } else {
+            return false;
+        }
+    }
+
+    public function attach($data, $fixed = []): bool
+    {
+        if ($this->belongs instanceof BelongsToMiddle) {
+            return $this->belongs->attach($data, $fixed) === false;
+        } else {
+            return false;
+        }
+    }
+
+    public function sync($data, $fixed = []): bool
     {
         if ($this->belongs instanceof BelongsToMiddle) {
             return $this->belongs->sync($data, $fixed);
