@@ -61,7 +61,7 @@ class BelongsToMiddle extends Relation
         return $result;
     }
 
-    function detach($ids): mixed
+    function detach($ids = null): mixed
     {
         $lk    = $this->model->{$this->model->primaryKey};
         $build = (clone $this->middle)->where($this->ofLocalKey, $lk);
@@ -96,6 +96,6 @@ class BelongsToMiddle extends Relation
 
     function sync($ps = [], array $fixed = []): bool
     {
-        return $this->detach([]) !== false && $this->attach($ps, $fixed) !== false;
+        return $this->detach() !== false && $this->attach($ps, $fixed) !== false;
     }
 }
