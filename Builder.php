@@ -82,9 +82,13 @@ class Builder extends ToSql implements Edition
      */
     public function where(string $column, $char, $value = null, bool $merge = true): Builder
     {
-        if ($value === null && $char !== '=') {
+        if ($value === null) {
             $value = $char;
-            $char  = '=';
+            if (is_array($char)) {
+                $char = 'in';
+            } else if (is_string($char)) {
+                $char = '=';
+            }
         }
         $exps = [[$column, $char, $value]];
         if ($merge && count($this->whereExp)) {
@@ -386,19 +390,19 @@ class Builder extends ToSql implements Edition
         }, $this->columns([$column])->select()->toArray());
     }
 
-    public function detach(): bool
+    public function detach($ids = null): bool
     {
         if ($this->belongs instanceof BelongsToMiddle) {
-            return $this->belongs->detach() !== false;
+            return $this->belongs->detach($ids) !== false;
         } else {
             return false;
         }
     }
 
-    public function attach($data, $fixed = []): bool
+    public function attach($ids, $fixed = []): bool
     {
         if ($this->belongs instanceof BelongsToMiddle) {
-            return $this->belongs->attach($data, $fixed) === false;
+            return $this->belongs->attach($ids, $fixed) === false;
         } else {
             return false;
         }

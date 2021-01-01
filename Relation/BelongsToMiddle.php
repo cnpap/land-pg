@@ -61,28 +61,32 @@ class BelongsToMiddle extends Relation
         return $result;
     }
 
-    function detach(): mixed
+    function detach($ids): mixed
     {
-        $key = $this->model->{$this->model->primaryKey};
-        return (clone $this->middle)->where($this->ofLocalKey, $key)->delete();
+        $lk    = $this->model->{$this->model->primaryKey};
+        $build = (clone $this->middle)->where($this->ofLocalKey, $lk);
+        if ($ids !== null) {
+            return $build->where($this->ofForeignKey, $ids)->delete();
+        }
+        return $build->delete();
     }
 
-    function attach($ps = [], array $fixed = []): mixed
+    function attach($ids = [], array $fixed = []): mixed
     {
-        $key = $this->model->{$this->model->primaryKey};
-        if ($ps instanceof Builder) {
-            $ps->columns([
-                $this->ofLocalKey   => $key,
+        $lk = $this->model->{$this->model->primaryKey};
+        if ($ids instanceof Builder) {
+            $ids->columns([
+                $this->ofLocalKey   => $lk,
                 $this->ofForeignKey => $this->foreignKey,
                 ...$fixed
             ]);
-            return (clone $this->middle)->insertMany($ps);
+            return (clone $this->middle)->insertMany($ids);
         } else {
             $data = [];
-            foreach ($ps as $p) {
+            foreach ($ids as $fk) {
                 $data[] = [
-                    $this->ofLocalKey   => $key,
-                    $this->ofForeignKey => $p,
+                    $this->ofLocalKey   => $lk,
+                    $this->ofForeignKey => $fk,
                     ...$fixed
                 ];
             }
@@ -92,6 +96,6 @@ class BelongsToMiddle extends Relation
 
     function sync($ps = [], array $fixed = []): bool
     {
-        return $this->detach() !== false && $this->attach($ps, $fixed) !== false;
+        return $this->detach([]) !== false && $this->attach($ps, $fixed) !== false;
     }
 }
