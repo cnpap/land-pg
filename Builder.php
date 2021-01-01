@@ -86,7 +86,7 @@ class Builder extends ToSql implements Edition
             $value = $char;
             if (is_array($char)) {
                 $char = 'in';
-            } else if (is_string($char)) {
+            } else {
                 $char = '=';
             }
         }
