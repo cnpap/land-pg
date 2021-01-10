@@ -49,19 +49,14 @@ class Model implements ArrayAccess
         return pg_connect("host={$this->host} port={$this->port} dbname={$this->database} user={$this->username} password={$this->password}");
     }
 
-    /**
-     * @param Closure $process
-     * @return false
-     * @throws Throwable
-     */
-    public function transaction(Closure $process): mixed
+    public function transaction(Closure $process, Closure $errProcess = null): mixed
     {
         $begin = $this->begin();
         if ($begin === false) {
             return false;
         }
         try {
-            $result = $process();
+            $result = $process() ?? true;
             if (!$result) {
                 $this->rollback();
                 return false;
@@ -73,7 +68,7 @@ class Model implements ArrayAccess
             return $result;
         } catch (Throwable $e) {
             $this->rollback();
-            throw $e;
+            return $errProcess($e);
         }
     }
 
@@ -161,10 +156,12 @@ class Model implements ArrayAccess
         $builder = new Builder(new static());
         if (isset($this->attributes[$this->primaryKey])) {
             $builder->where($this->primaryKey, '=', $this->attributes[$this->primaryKey]);
-            return $builder->update($this->attributes);
+            $this->attributes['updated_at'] = 'now()';
+            $result                         = $builder->update($this->attributes);
         } else {
-            return $builder->insert($this->attributes);
+            $result = $builder->insert($this->attributes);
         }
+        $this->attributes = pg_fetch_array($result, 0, PGSQL_ASSOC);
     }
 
     public function toArray(): array

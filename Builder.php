@@ -171,21 +171,21 @@ class Builder extends ToSql implements Edition
                 $execSql .= " on conflict $columnSql do nothing";
             }
         }
-        return $execSql;
+        return $execSql . " returning *";
     }
 
     public function insert($data, array $conflict = []): mixed
     {
         if ($data instanceof Builder) {
-            return pg_affected_rows($this->execute($this->previewInsert($data->limit(1), $conflict)));
+            return $this->execute($this->previewInsert($data->limit(1), $conflict));
         } else {
-            return pg_affected_rows($this->execute($this->previewInsert([$data], $conflict)));
+            return $this->execute($this->previewInsert([$data], $conflict));
         }
     }
 
     public function insertMany($data, array $conflict = []): mixed
     {
-        return pg_affected_rows($this->execute($this->previewInsert($data, $conflict)));
+        return $this->execute($this->previewInsert($data, $conflict));
     }
 
     public function delete(): mixed
@@ -195,7 +195,7 @@ class Builder extends ToSql implements Edition
         if (count($this->whereExp)) {
             $execSql .= ' where ' . $this->toWhereSqlPrepare();
         }
-        return pg_affected_rows($this->execute($execSql));
+        return $this->execute($execSql . " returning *");
     }
 
     public function previewUpdate(array $data): mixed
@@ -206,12 +206,12 @@ class Builder extends ToSql implements Edition
         if (count($this->whereExp)) {
             $execSql .= ' where ' . $this->toWhereSqlPrepare();
         }
-        return $execSql;
+        return $execSql . " returning *";
     }
 
     public function update(array $data): mixed
     {
-        return pg_affected_rows($this->execute($this->previewUpdate($data)));
+        return $this->execute($this->previewUpdate($data));
     }
 
     public function belongsTo(Relation $belongs)
@@ -295,29 +295,29 @@ class Builder extends ToSql implements Edition
 
     #[ArrayShape([
         'data'     => "",
-        'page'     => "int",
-        'per_page' => "int",
+        'current'  => "int",
+        'pageSize' => "int",
         'amount'   => "int"
     ])]
-    public function page($page = null, $perPage = null): mixed
+    public function page($current = null, $pageSize = null): mixed
     {
-        if (is_null($page)) {
-            $page    = $_GET['page'];
-            $perPage = $_GET['per_page'];
-        } else if (is_null($perPage)) {
-            $perPage = $_GET['per_page'];
+        if (is_null($current)) {
+            $current  = $_GET['current'];
+            $pageSize = $_GET['pageSize'];
+        } else if (is_null($pageSize)) {
+            $pageSize = $_GET['pageSize'];
         }
         $amount = clone $this;
-        if (isset($_GET['order_by'])) {
-            $this->orderBy([$_GET['order_by'] => $_GET['order_direction'] ?? 'asc']);
+        if (isset($_GET['orderBy'])) {
+            $this->orderBy([$_GET['orderBy'] => in_array($_GET['orderDirection'] ?? 'asc', ['asc', 'ascend']) ? 'asc' : 'desc']);
         }
-        $this->limit($perPage);
-        $this->offset($perPage * ($page - 1));
+        $this->limit($pageSize);
+        $this->offset($pageSize * ($current - 1));
         return [
             'data'     => $this->select()->toArray(),
-            'page'     => (int)$page,
-            'per_page' => (int)$perPage,
-            'amount'   => (int)$amount->count()
+            'current'  => (int)$current,
+            'pageSize' => (int)$pageSize,
+            'total'    => (int)$amount->count()
         ];
     }
 
@@ -337,9 +337,6 @@ class Builder extends ToSql implements Edition
     {
         $this->columns(["sum($key)"]);
         $result = $this->execute($this->previewSelect());
-        if ($result === false) {
-            return false;
-        }
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['sum'];
     }
 
@@ -347,9 +344,6 @@ class Builder extends ToSql implements Edition
     {
         $this->columns(["avg($key)"]);
         $result = $this->execute($this->previewSelect());
-        if ($result === false) {
-            return false;
-        }
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['avg'];
     }
 
@@ -357,9 +351,6 @@ class Builder extends ToSql implements Edition
     {
         $this->columns(["min($key)"]);
         $result = $this->execute($this->previewSelect());
-        if ($result === false) {
-            return false;
-        }
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['min'];
     }
 
@@ -367,9 +358,6 @@ class Builder extends ToSql implements Edition
     {
         $this->columns(["max($key)"]);
         $result = $this->execute($this->previewSelect());
-        if ($result === false) {
-            return false;
-        }
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['max'];
     }
 
@@ -377,9 +365,6 @@ class Builder extends ToSql implements Edition
     {
         $this->columns(["count({$this->model->primaryKey})"]);
         $result = $this->execute($this->previewSelect());
-        if ($result === false) {
-            return false;
-        }
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['count'];
     }
 
@@ -390,7 +375,7 @@ class Builder extends ToSql implements Edition
         }, $this->columns([$column])->select()->toArray());
     }
 
-    public function detach($ids = null)
+    public function detach($ids = null): bool
     {
         if ($this->belongs instanceof BelongsToMiddle) {
             return $this->belongs->detach($ids);
@@ -399,7 +384,7 @@ class Builder extends ToSql implements Edition
         }
     }
 
-    public function attach($ids, $fixed = [])
+    public function attach($ids, $fixed = []): bool
     {
         if ($this->belongs instanceof BelongsToMiddle) {
             return $this->belongs->attach($ids, $fixed);

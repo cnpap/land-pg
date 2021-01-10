@@ -66,7 +66,7 @@ class BelongsToMiddle extends Relation
         $lk    = $this->model->{$this->model->primaryKey};
         $build = (clone $this->middle)->where($this->ofLocalKey, $lk);
         if ($ids !== null) {
-            return $build->where($this->ofForeignKey, $ids)->delete();
+            $build->where($this->ofForeignKey, $ids);
         }
         return $build->delete();
     }
@@ -94,8 +94,9 @@ class BelongsToMiddle extends Relation
         }
     }
 
-    function sync($ps = [], array $fixed = []): bool
+    function sync($ps = [], array $fixed = [])
     {
-        return $this->detach() !== false && $this->attach($ps, $fixed) !== false;
+        $this->detach();
+        return $this->attach($ps, $fixed);
     }
 }
