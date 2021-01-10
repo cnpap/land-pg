@@ -68,7 +68,11 @@ class Model implements ArrayAccess
             return $result;
         } catch (Throwable $e) {
             $this->rollback();
-            return $errProcess($e);
+            if ($errProcess === null) {
+                return false;
+            } else {
+                return $errProcess($e);
+            }
         }
     }
 
