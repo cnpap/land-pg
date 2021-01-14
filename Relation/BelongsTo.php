@@ -28,7 +28,7 @@ class BelongsTo extends Relation
                 'in',
                 $collection->one($this->localKey)
             )
-            ->select();
+            ->select([$this->foreignKey]);
     }
 
     function fetch(Model $localModel): array
