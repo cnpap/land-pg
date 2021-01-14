@@ -31,12 +31,12 @@ class BelongsTo extends Relation
             ->select();
     }
 
-    function fetch(array $localRow): array
+    function fetch(Model $localModel): array
     {
         $result = [];
         /** @var Model $foreignRow */
         foreach ($this->data as $foreignRow) {
-            if ($localRow[$this->localKey] === $foreignRow[$this->foreignKey]) {
+            if ($localModel[$this->localKey] === $foreignRow[$this->foreignKey]) {
                 if ($this->first) {
                     return $foreignRow->toArray();
                 } else {

@@ -20,5 +20,5 @@ abstract class Relation
 
     abstract public function batch(Collection $collection);
 
-    abstract public function fetch(array $localRow);
+    abstract public function fetch(Model $localModel);
 }

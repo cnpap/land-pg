@@ -30,12 +30,17 @@ class Model implements ArrayAccess
 
     public string $primaryKey = 'id';
 
+    protected bool $arred = false;
+
     function __construct(public array $attributes = [])
     {
     }
 
     function __get($name): mixed
     {
+        if (!$this->arred) {
+            $this->attributes = $this->toArray();
+        }
         return $this->attributes[$name] ?? null;
     }
 
@@ -170,8 +175,12 @@ class Model implements ArrayAccess
 
     public function toArray(): array
     {
-        $re      = new ReflectionClass($this);
-        $comment = $re->getDocComment();
+        if ($this->arred) {
+            return $this->attributes;
+        }
+        $this->arred = true;
+        $re          = new ReflectionClass($this);
+        $comment     = $re->getDocComment();
         preg_match_all('@(?:\@property)(?:-(read|write))?\s+(int|bool|array|float)\s+\$?([a-z_]+)@', $comment, $matches, PREG_SET_ORDER);
         if (count($matches)) {
             $attributes = $this->attributes;

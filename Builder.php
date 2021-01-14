@@ -219,13 +219,14 @@ class Builder extends ToSql implements Edition
         $this->belongs = $belongs;
     }
 
-    public function previewSelect(): mixed
+    public function previewSelect($columns = []): mixed
     {
         $this->useGuard();
         $columnSql = '*';
-        if (count($this->columns)) {
+        $columns   = array_merge($columns, $this->columns);
+        if (count($columns)) {
             $columnArr = [];
-            foreach ($this->columns as $columnK => $columnV) {
+            foreach ($columns as $columnK => $columnV) {
                 if (is_numeric($columnK)) {
                     $columnArr[] = $columnV;
                 } else {
@@ -239,8 +240,7 @@ class Builder extends ToSql implements Edition
             $execSql .= ' where ' . $this->toWhereSqlPrepare();
         }
         if (!is_null($this->union)) {
-            $this->union->columns($this->columns);
-            $execSql .= ' ' . $this->union->previewSelect();
+            $execSql .= ' ' . $this->union->previewSelect($columns);
         }
         if (count($this->sort)) {
             $execSql       .= ' order by ';
@@ -259,12 +259,12 @@ class Builder extends ToSql implements Edition
         return $execSql;
     }
 
-    public function select(): BaseCollection
+    public function select($columns = []): BaseCollection
     {
         if (count($this->sort) === 0) {
             $this->orderBy([$this->model->primaryKey => self::ORDER_BY_ASC]);
         }
-        $result = $this->execute($this->previewSelect());
+        $result = $this->execute($this->previewSelect($columns));
         $data   = pg_fetch_all($result);
         if (is_bool($data)) {
             $data = [];

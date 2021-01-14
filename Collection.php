@@ -142,5 +142,6 @@ class Collection implements Iterator, Edition, ArrayAccess
     public function offsetUnset($offset)
     {
         unset($this->data[$offset]);
+        $this->data = array_values($this->data);
     }
 }

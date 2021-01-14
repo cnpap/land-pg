@@ -18,7 +18,7 @@ class Collection extends BaseCollection
         if (!isset($this->data[$offset])) {
             return null;
         }
-        $data = $this->data[$offset];
+        $data = new $this->from($this->data[$offset]);
         foreach ($this->withArr as $with) {
             /** @var Relation $belongs */
             list($method, $belongs) = $with;
@@ -33,7 +33,7 @@ class Collection extends BaseCollection
             $data[$method] = $more;
         }
         if ($instance) {
-            return new $this->from($data);
+            return $data;
         }
         return $data;
     }
