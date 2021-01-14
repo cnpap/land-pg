@@ -223,7 +223,9 @@ class Builder extends ToSql implements Edition
     {
         $this->useGuard();
         $columnSql = '*';
-        $columns   = array_merge($columns, $this->columns);
+        if (count($this->columns)) {
+            $columns = array_merge($columns, $this->columns);
+        }
         if (count($columns)) {
             $columnArr = [];
             foreach ($columns as $columnK => $columnV) {
