@@ -13,25 +13,16 @@ use LandPG\Collection as BaseCollection;
 
 class Builder extends ToSql implements Edition
 {
-    protected array $columns = [];
-
-    protected array $whereExp = [];
-
-    protected Relation|null $belongs = null;
-
-    protected int $limitNum = 0;
-
-    protected int $offsetNum = 0;
-
-    protected array $withArr = [];
-
-    protected Builder|null $union = null;
-
-    public const ORDER_BY_ASC = 'asc';
-
+    protected array         $columns   = [];
+    protected array         $whereExp  = [];
+    protected Relation|null $belongs   = null;
+    protected int           $limitNum  = 0;
+    protected int           $offsetNum = 0;
+    protected array         $withArr   = [];
+    protected Builder|null  $union     = null;
+    protected array         $sort      = [];
+    public const ORDER_BY_ASC  = 'asc';
     public const ORDER_BY_DESC = 'desc';
-
-    protected array $sort = [];
 
     public function __construct(public Model $model)
     {

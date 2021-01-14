@@ -7,12 +7,9 @@ use ArrayAccess;
 
 class Collection implements Iterator, Edition, ArrayAccess
 {
-    protected array $data;
-
-    protected array $columns;
-
-    protected int $index = 0;
-
+    protected array  $data;
+    protected array  $columns;
+    protected int    $index = 0;
     protected string $from;
 
     public function __construct(array $data, array $columns, string $from)

@@ -4,9 +4,8 @@ namespace LandPG;
 
 class Guard
 {
-    private int $count = 0;
-
-    public array $data = [];
+    private int  $count = 0;
+    public array $data  = [];
 
     public function str(string $str)
     {
@@ -18,7 +17,7 @@ class Guard
     {
         $is = [];
         foreach ($arr as $v) {
-            $is[] = '$' . ++$this->count;
+            $is[]         = '$' . ++$this->count;
             $this->data[] = $v;
         }
         if (count($is)) {
@@ -32,7 +31,7 @@ class Guard
     {
         $caseSql = [];
         foreach ($arr[1] as $when => $then) {
-            $caseSql[] = "when $when then $" . ++$this->count;
+            $caseSql[]    = "when $when then $" . ++$this->count;
             $this->data[] = $then;
         }
         return "case $arr[0] " . implode(' ', $caseSql) . ' end';
