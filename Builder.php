@@ -38,19 +38,6 @@ class Builder extends ToSql implements Edition
         return $this;
     }
 
-    public function getColumnKeys(): array
-    {
-        $keys = [];
-        foreach ($this->columns as $columnK => $columnV) {
-            if (is_numeric($columnK)) {
-                $keys[] = $columnV;
-            } else {
-                $keys[] = $columnK;
-            }
-        }
-        return $keys;
-    }
-
     /**
      * @param string $column
      * @param $char
@@ -144,7 +131,7 @@ class Builder extends ToSql implements Edition
         $execSql = 'insert into ' . $this->model->getTable();
         if ($data instanceof Builder) {
             $data->useGuard($this->guard);
-            $setColumnSql = implode(', ', $data->getColumnKeys());
+            $setColumnSql = implode(', ', Help::getColumns($this->columns));
             $execSql      .= " ($setColumnSql) " . $data->previewSelect();
         } else {
             $sqlArr = [];
@@ -215,7 +202,7 @@ class Builder extends ToSql implements Edition
         $this->useGuard();
         $columnSql = '*';
         if (count($this->columns)) {
-            $columns = array_merge($columns, $this->columns);
+            $columns = Help::mergeColumns($columns, $this->columns);
         }
         if (count($columns)) {
             $columnArr = [];

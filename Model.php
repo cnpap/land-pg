@@ -3,10 +3,10 @@
 namespace LandPG;
 
 use Closure;
-use JetBrains\PhpStorm\Pure;
+use LandPG\Relation\BelongsToMany;
+use LandPG\Relation\BelongsToOne;
 use Throwable;
 use ArrayAccess;
-use LandPG\Relation\BelongsTo;
 use LandPG\Relation\BelongsToMiddle;
 use ReflectionClass;
 
@@ -61,7 +61,7 @@ class Model implements ArrayAccess
 
     function __set($name, $value)
     {
-        if (is_array($value) && isset($this->filter[$name])) {
+        if (is_array($value) && isset($this->filter[$name]) && $this->filter[$name] === 'array') {
             $this->attributes[$name] = json_encode($value);
         } else {
             $this->attributes[$name] = $value;
@@ -132,29 +132,28 @@ class Model implements ArrayAccess
         return $this->prefix . $this->table . $this->suffix;
     }
 
-    #[Pure]
     static public function query(): Builder
     {
         return new Builder(new static());
     }
 
-    public function hasOne(Builder $foreign, string $localKey, string $foreignKey): Builder
+    public function hasOne(Builder $foreign, string $localKey, string $foreignKey, array $columns = [], bool $merge = false): Builder
     {
-        $belongsTo = new BelongsTo($this, $foreign, $localKey, $foreignKey, true);
+        $belongsTo = new BelongsToOne($this, $foreign, $localKey, $foreignKey, $columns, $merge);
         $foreign->belongsTo($belongsTo);
         return $foreign;
     }
 
-    public function hasMany(Builder $foreign, string $localKey, string $foreignKey): Builder
+    public function hasMany(Builder $foreign, string $localKey, string $foreignKey, array $columns = []): Builder
     {
-        $belongsTo = new BelongsTo($this, $foreign, $localKey, $foreignKey, false);
+        $belongsTo = new BelongsToMany($this, $foreign, $localKey, $foreignKey, $columns);
         $foreign->belongsTo($belongsTo);
         return $foreign;
     }
 
-    public function hasMiddle(Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey): Builder
+    public function hasMiddle(Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey, array $columns, array $ofColumns): Builder
     {
-        $belongsToMiddle = new BelongsToMiddle($this, $foreign, $middle, $localKey, $ofLocalKey, $foreignKey, $ofForeignKey);
+        $belongsToMiddle = new BelongsToMiddle($this, $foreign, $middle, $localKey, $ofLocalKey, $foreignKey, $ofForeignKey, $columns, $ofColumns);
         $foreign->belongsTo($belongsToMiddle);
         return $foreign;
     }

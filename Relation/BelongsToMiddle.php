@@ -4,19 +4,18 @@ namespace LandPG\Relation;
 
 use LandPG\Builder;
 use LandPG\Collection;
+use LandPG\Help;
 use LandPG\Model;
 
 class BelongsToMiddle extends Relation
 {
-    protected Builder $middle;
-
+    protected Builder    $middle;
     protected Collection $middleCol;
+    protected string     $ofLocalKey;
+    protected string     $ofForeignKey;
+    protected array      $ofColumns;
 
-    protected string $ofLocalKey;
-
-    protected string $ofForeignKey;
-
-    function __construct(Model $model, Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey)
+    function __construct(Model $model, Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey, array $columns, array $ofColumns)
     {
         $this->model        = $model;
         $this->foreign      = $foreign;
@@ -25,6 +24,8 @@ class BelongsToMiddle extends Relation
         $this->ofLocalKey   = $ofLocalKey;
         $this->foreignKey   = $foreignKey;
         $this->ofForeignKey = $ofForeignKey;
+        $this->columns      = $columns;
+        $this->ofColumns    = $ofColumns;
     }
 
     public function batch(Collection $collection)
@@ -32,23 +33,22 @@ class BelongsToMiddle extends Relation
         $localKeys = $collection->one($this->localKey);
         $this->middle->where($this->ofLocalKey, 'in', $localKeys);
         $this->dev();
-        $this->data = $this->foreign->select();
+        $this->data = $this->foreign->select($this->columns);
     }
 
     public function dev()
     {
-        $this->middleCol = $this->middle->select([$this->ofLocalKey, $this->ofForeignKey]);
+        $this->middleCol = $this->middle->select(Help::mergeColumns([$this->ofLocalKey, $this->ofForeignKey], $this->ofColumns));
         $originKeys      = $this->middleCol->one($this->ofForeignKey);
         $this->foreign->where($this->foreignKey, 'in', $originKeys);
     }
 
-    function fetch(Model $localModel): array
+    function fetch(Model $localModel, string $method): void
     {
-        $middleKeys = [];
-        $columnKeys = $this->middle->getColumnKeys();
+        $result     = [];
+        $columnKeys = Help::getColumns($this->ofColumns);
         if (count($columnKeys)) {
-            $result        = [];
-            $data          = $this->data;
+            $data = $this->data;
             /** @var Model $middleModel */
             foreach ($this->middleCol as $middleIndex => $middleModel) {
                 if ($localModel->{$this->localKey} === $middleModel->{$this->ofLocalKey}) {
@@ -67,8 +67,8 @@ class BelongsToMiddle extends Relation
                     }
                 }
             }
-            return $result;
         } else {
+            $middleKeys = [];
             for ($i = 0; $i < $this->middleCol->count(); $i++) {
                 $middleModel = $this->middleCol[$i];
                 if ($localModel->{$this->localKey} === $middleModel->{$this->ofLocalKey}) {
@@ -82,8 +82,8 @@ class BelongsToMiddle extends Relation
                     $result[] = $foreignRow->toArray();
                 }
             }
-            return $result;
         }
+        $localModel[$method] = $result;
     }
 
     function detach($ids = null): mixed

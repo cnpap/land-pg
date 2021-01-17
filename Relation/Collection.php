@@ -3,6 +3,7 @@
 namespace LandPG\Relation;
 
 use LandPG\Collection as BaseCollection;
+use LandPG\Model;
 
 class Collection extends BaseCollection
 {
@@ -13,24 +14,17 @@ class Collection extends BaseCollection
         return $this->offsetGet($this->index);
     }
 
-    public function offsetGet($offset, $instance = true)
+    public function offsetGet($offset, $instance = true): ?Model
     {
         if (!isset($this->data[$offset])) {
             return null;
         }
+        /** @var Model $data */
         $data = new $this->from($this->data[$offset]);
         foreach ($this->withArr as $with) {
             /** @var Relation $belongs */
             list($method, $belongs) = $with;
-            $more = $belongs->fetch($data);
-            if (!(bool)$more) {
-                if ($belongs instanceof BelongsTo) {
-                    $more = null;
-                } else {
-                    $more = [];
-                }
-            }
-            $data[$method] = $more;
+            $belongs->fetch($data, $method);
         }
         if ($instance) {
             return $data;

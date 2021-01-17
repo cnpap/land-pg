@@ -1,23 +1,23 @@
 {
-    "name": "justlikesuolong/land-pg",
-    "description": "postgres 专用的 orm",
-    "keywords": [
-        "orm",
-        "pgsql",
-        "postgres"
-    ],
-    "license": "MIT",
-    "require-dev": {
-        "phpunit/phpunit": "^9.3"
-    },
-    "autoload": {
-        "psr-4": {
-            "LandPG\\": ""
-        }
-    },
-    "require": {
-        "php": "^8",
-        "ext-pgsql": "*",
-        "ext-json": "*"
+  "name": "justlikesuolong/land-pg",
+  "description": "postgres 专用的 orm",
+  "keywords": [
+    "orm",
+    "pgsql",
+    "postgres"
+  ],
+  "license": "MIT",
+  "require-dev": {
+    "phpunit/phpunit": "^9.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "LandPG\\": ""
     }
+  },
+  "require": {
+    "php": "^8",
+    "ext-pgsql": "*",
+    "ext-json": "*"
+  }
 }
