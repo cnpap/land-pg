@@ -51,7 +51,7 @@ class Model implements ArrayAccess
                 'int' => is_numeric($this->attributes[$name]) ? (int)$this->attributes[$name] : $this->attributes[$name],
                 'array' => json_decode($this->attributes[$name], true),
                 'bool' => (bool)$this->attributes[$name],
-                'float' => is_float($this->attributes[$name]) ? (float)$this->attributes[$name] : $this->attributes[$name],
+                'float' => is_numeric($this->attributes[$name]) ? (float)$this->attributes[$name] : $this->attributes[$name],
                 'default' => $this->attributes[$name]
             };
         } else {
