@@ -144,9 +144,9 @@ class Model implements ArrayAccess
         return $foreign;
     }
 
-    public function hasMany(Builder $foreign, string $localKey, string $foreignKey, array $columns = []): Builder
+    public function hasMany(Builder $foreign, string $localKey, string $foreignKey, array $columns = [], bool $merge = true): Builder
     {
-        $belongsTo = new BelongsToMany($this, $foreign, $localKey, $foreignKey, $columns);
+        $belongsTo = new BelongsToMany($this, $foreign, $localKey, $foreignKey, $columns, $merge);
         $foreign->belongsTo($belongsTo);
         return $foreign;
     }
