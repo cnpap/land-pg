@@ -12,7 +12,7 @@ class BelongsToMany extends BelongsTo
         $result = [];
         /** @var Model $foreignRow */
         foreach ($this->data as $foreignRow) {
-            if ($localModel[$this->localKey] === $foreignRow[$this->foreignKey]) {
+            if ((string)$localModel[$this->localKey] === (string)$foreignRow[$this->foreignKey]) {
                 if (count($this->columns) > 1) {
                     $columns = Help::getColumns($this->columns);
                     $data    = [];

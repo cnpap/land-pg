@@ -51,12 +51,12 @@ class BelongsToMiddle extends Relation
             $data = $this->data;
             /** @var Model $middleModel */
             foreach ($this->middleCol as $middleIndex => $middleModel) {
-                if ($localModel->{$this->localKey} === $middleModel->{$this->ofLocalKey}) {
+                if ((string)$localModel->{$this->localKey} === (string)$middleModel->{$this->ofLocalKey}) {
                     $middleKey = $middleModel->{$this->ofForeignKey};
                     for ($i = 0; $i < $data->count(); $i++) {
                         /** @var Model $foreignRow */
                         $foreignRow = $data[$i];
-                        if ($middleKey === $foreignRow->{$this->foreignKey}) {
+                        if ((string)$middleKey === (string)$foreignRow->{$this->foreignKey}) {
                             foreach ($columnKeys as $columnKey) {
                                 $foreignRow->{$columnKey} = $middleModel->{$columnKey};
                             }
@@ -71,7 +71,7 @@ class BelongsToMiddle extends Relation
             $middleKeys = [];
             for ($i = 0; $i < $this->middleCol->count(); $i++) {
                 $middleModel = $this->middleCol[$i];
-                if ($localModel->{$this->localKey} === $middleModel->{$this->ofLocalKey}) {
+                if ((string)$localModel->{$this->localKey} === (string)$middleModel->{$this->ofLocalKey}) {
                     $middleKeys[] = $middleModel->{$this->ofForeignKey};
                 }
             }
