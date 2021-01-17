@@ -48,10 +48,10 @@ class Model implements ArrayAccess
     {
         if (isset($this->filter[$name])) {
             return match ($this->filter[$name]) {
-                'int' => (int)$this->attributes[$name],
+                'int' => is_numeric($this->attributes[$name]) ? (int)$this->attributes[$name] : $this->attributes[$name],
                 'array' => json_decode($this->attributes[$name], true),
                 'bool' => (bool)$this->attributes[$name],
-                'float' => (float)$this->attributes[$name],
+                'float' => is_float($this->attributes[$name]) ? (float)$this->attributes[$name] : $this->attributes[$name],
                 'default' => $this->attributes[$name]
             };
         } else {
@@ -151,7 +151,7 @@ class Model implements ArrayAccess
         return $foreign;
     }
 
-    public function hasMiddle(Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey, array $columns, array $ofColumns): Builder
+    public function hasMiddle(Builder $foreign, Builder $middle, string $localKey, string $ofLocalKey, string $foreignKey, string $ofForeignKey, array $columns = [], array $ofColumns = []): Builder
     {
         $belongsToMiddle = new BelongsToMiddle($this, $foreign, $middle, $localKey, $ofLocalKey, $foreignKey, $ofForeignKey, $columns, $ofColumns);
         $foreign->belongsTo($belongsToMiddle);

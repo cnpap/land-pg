@@ -18,7 +18,11 @@ class Help
         $strColumnKS  = array_merge($strColumnKS1, $strColumnKS2);
         $intColumnKS1 = array_filter($columns1, 'is_int', ARRAY_FILTER_USE_KEY);
         $intColumnKS2 = array_filter($columns2, 'is_int', ARRAY_FILTER_USE_KEY);
-        $intColumnKS  = array_merge($intColumnKS1, array_diff($intColumnKS1, $intColumnKS2));
+        $intColumnKS = array_merge(
+            $intColumnKS1,
+            array_diff($intColumnKS1, $intColumnKS2),
+            array_diff($intColumnKS2, $intColumnKS1)
+        );
         return array_merge($strColumnKS, $intColumnKS);
     }
 }
