@@ -21,6 +21,7 @@ class Builder extends ToSql implements Edition
     protected array         $withArr   = [];
     protected Builder|null  $union     = null;
     protected array         $sort      = [];
+    protected string        $groupBy   = '';
     public const ORDER_BY_ASC  = 'asc';
     public const ORDER_BY_DESC = 'desc';
 
@@ -202,7 +203,7 @@ class Builder extends ToSql implements Edition
         $this->useGuard();
         $columnSql = '*';
         if (count($this->columns)) {
-            $columns = Help::mergeColumns($columns, $this->columns);
+            $columns = Help::mergeColumns($this->columns, $columns);
         }
         if (count($columns)) {
             $columnArr = [];
@@ -222,13 +223,16 @@ class Builder extends ToSql implements Edition
         if (!is_null($this->union)) {
             $execSql .= ' ' . $this->union->previewSelect($columns);
         }
+        if ($this->groupBy !== '') {
+            $execSql .= " group by $this->groupBy ";
+        }
         if (count($this->sort)) {
             $execSql       .= ' order by ';
-            $groupBySqlArr = [];
+            $orderBySqlArr = [];
             foreach ($this->sort as $column => $order) {
-                $groupBySqlArr[] = "$column $order";
+                $orderBySqlArr[] = "$column $order";
             }
-            $execSql .= implode(', ', $groupBySqlArr);
+            $execSql .= implode(', ', $orderBySqlArr);
         }
         if ($this->offsetNum !== 0) {
             $execSql .= ' offset ' . $this->offsetNum;
@@ -237,6 +241,12 @@ class Builder extends ToSql implements Edition
             $execSql .= ' limit ' . $this->limitNum;
         }
         return $execSql;
+    }
+
+    public function groupBy($column)
+    {
+        $this->groupBy = $column;
+        return $this;
     }
 
     public function select($columns = []): BaseCollection
@@ -274,30 +284,30 @@ class Builder extends ToSql implements Edition
     }
 
     #[ArrayShape([
-        'page_data'    => "",
-        'page_current' => "int",
-        'page_size'    => "int",
-        'page_total'   => "int"
+        'data'     => "",
+        'current'  => "int",
+        'pageSize' => "int",
+        'amount'   => "int"
     ])]
-    public function page($page_current = null, $page_size = null): mixed
+    public function page($current = null, $pageSize = null): mixed
     {
-        if (is_null($page_current)) {
-            $page_current = $_GET['page_current'];
-            $page_size    = $_GET['page_size'];
-        } else if (is_null($page_size)) {
-            $page_size = $_GET['page_size'];
+        if (is_null($current)) {
+            $current  = $_GET['current'];
+            $pageSize = $_GET['pageSize'];
+        } else if (is_null($pageSize)) {
+            $pageSize = $_GET['pageSize'];
         }
         $amount = clone $this;
-        if (isset($_GET['order_by'])) {
-            $this->orderBy([$_GET['order_by'] => in_array($_GET['order_direction'] ?? 'asc', ['asc', 'ascend']) ? 'asc' : 'desc']);
+        if (isset($_GET['orderBy'])) {
+            $this->orderBy([$_GET['orderBy'] => in_array($_GET['orderDirection'] ?? 'asc', ['asc', 'ascend']) ? 'asc' : 'desc']);
         }
-        $this->limit($page_size);
-        $this->offset($page_size * ($page_current - 1));
+        $this->limit($pageSize);
+        $this->offset($pageSize * ($current - 1));
         return [
-            'page_data'    => $this->select()->toArray(),
-            'page_current' => (int)$page_current,
-            'page_size'    => (int)$page_size,
-            'page_total'   => (int)$amount->count()
+            'data'     => $this->select()->toArray(),
+            'current'  => (int)$current,
+            'pageSize' => (int)$pageSize,
+            'total'    => (int)$amount->count()
         ];
     }
 
