@@ -243,7 +243,7 @@ class Builder extends ToSql implements Edition
         return $execSql;
     }
 
-    public function groupBy($column)
+    public function groupBy($column): Builder
     {
         $this->groupBy = $column;
         return $this;
