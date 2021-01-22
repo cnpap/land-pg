@@ -284,30 +284,30 @@ class Builder extends ToSql implements Edition
     }
 
     #[ArrayShape([
-        'data'     => "",
-        'current'  => "int",
-        'pageSize' => "int",
-        'amount'   => "int"
+        'page_data'    => "",
+        'page_current' => "int",
+        'page_size'    => "int",
+        'page_total'   => "int"
     ])]
-    public function page($current = null, $pageSize = null): mixed
+    public function page($pageCurrent = null, $pageSize = null): mixed
     {
-        if (is_null($current)) {
-            $current  = $_GET['current'];
-            $pageSize = $_GET['pageSize'];
+        if (is_null($pageCurrent)) {
+            $pageCurrent = $_GET['page_current'];
+            $pageSize    = $_GET['page_size'];
         } else if (is_null($pageSize)) {
-            $pageSize = $_GET['pageSize'];
+            $pageSize = $_GET['page_size'];
         }
         $amount = clone $this;
-        if (isset($_GET['orderBy'])) {
-            $this->orderBy([$_GET['orderBy'] => in_array($_GET['orderDirection'] ?? 'asc', ['asc', 'ascend']) ? 'asc' : 'desc']);
+        if (isset($_GET['order_by'])) {
+            $this->orderBy([$_GET['order_by'] => in_array($_GET['order_direction'] ?? 'asc', ['asc', 'ascend']) ? 'asc' : 'desc']);
         }
         $this->limit($pageSize);
-        $this->offset($pageSize * ($current - 1));
+        $this->offset($pageSize * ($pageCurrent - 1));
         return [
-            'data'     => $this->select()->toArray(),
-            'current'  => (int)$current,
-            'pageSize' => (int)$pageSize,
-            'total'    => (int)$amount->count()
+            'page_data'    => $this->select()->toArray(),
+            'page_current' => (int)$pageCurrent,
+            'page_size'    => (int)$pageSize,
+            'page_total'   => (int)$amount->count()
         ];
     }
 
