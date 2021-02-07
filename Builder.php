@@ -289,18 +289,9 @@ class Builder extends ToSql implements Edition
         'page_size'    => "int",
         'page_total'   => "int"
     ])]
-    public function page($pageCurrent = null, $pageSize = null): mixed
+    public function page($pageCurrent, $pageSize): mixed
     {
-        if (is_null($pageCurrent)) {
-            $pageCurrent = $_GET['page_current'];
-            $pageSize    = $_GET['page_size'];
-        } else if (is_null($pageSize)) {
-            $pageSize = $_GET['page_size'];
-        }
         $amount = clone $this;
-        if (isset($_GET['order_by'])) {
-            $this->orderBy([$_GET['order_by'] => in_array($_GET['order_direction'] ?? 'asc', ['asc', 'ascend']) ? 'asc' : 'desc']);
-        }
         $this->limit($pageSize);
         $this->offset($pageSize * ($pageCurrent - 1));
         return [
@@ -325,6 +316,7 @@ class Builder extends ToSql implements Edition
 
     public function sum(string $key): int|float
     {
+        $this->sort = [];
         $this->columns(["sum($key)"]);
         $result = $this->execute($this->previewSelect());
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['sum'];
@@ -332,6 +324,7 @@ class Builder extends ToSql implements Edition
 
     public function avg(string $key): float|int
     {
+        $this->sort = [];
         $this->columns(["avg($key)"]);
         $result = $this->execute($this->previewSelect());
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['avg'];
@@ -339,6 +332,7 @@ class Builder extends ToSql implements Edition
 
     public function min(string $key): float|int
     {
+        $this->sort = [];
         $this->columns(["min($key)"]);
         $result = $this->execute($this->previewSelect());
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['min'];
@@ -346,6 +340,7 @@ class Builder extends ToSql implements Edition
 
     public function max(string $key): float|int
     {
+        $this->sort = [];
         $this->columns(["max($key)"]);
         $result = $this->execute($this->previewSelect());
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['max'];
@@ -353,6 +348,7 @@ class Builder extends ToSql implements Edition
 
     public function count(): int
     {
+        $this->sort = [];
         $this->columns(["count({$this->model->primaryKey})"]);
         $result = $this->execute($this->previewSelect());
         return pg_fetch_array($result, 0, PGSQL_ASSOC)['count'];
