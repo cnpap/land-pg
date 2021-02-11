@@ -13,15 +13,16 @@ use LandPG\Collection as BaseCollection;
 
 class Builder extends ToSql implements Edition
 {
-    protected array         $columns   = [];
-    protected array         $whereExp  = [];
-    protected Relation|null $belongs   = null;
-    protected int           $limitNum  = 0;
-    protected int           $offsetNum = 0;
-    protected array         $withArr   = [];
-    protected Builder|null  $union     = null;
-    protected array         $sort      = [];
-    protected string        $groupBy   = '';
+    protected array         $columns      = [];
+    protected array         $whereExp     = [];
+    protected array         $mustWhereExp = [];
+    protected array         $withArr      = [];
+    protected array         $sort         = [];
+    protected Relation|null $belongs      = null;
+    protected Builder|null  $union        = null;
+    protected int           $offsetNum    = 0;
+    protected int           $limitNum     = 0;
+    protected string        $groupBy      = '';
     public const ORDER_BY_ASC  = 'asc';
     public const ORDER_BY_DESC = 'desc';
 
@@ -44,6 +45,7 @@ class Builder extends ToSql implements Edition
      * @param $char
      * @param $value
      * @param bool $merge
+     * @param bool $must
      *
      * 'column1', '=', 'aa'
      * 'column2', '>', 'bb'
@@ -59,7 +61,7 @@ class Builder extends ToSql implements Edition
      *
      * @see bool $merge 如果传递 false 则 where 通过 or 分割
      */
-    public function where(string $column, $char, $value = null, bool $merge = true): Builder
+    public function where(string $column, $char, $value = null, bool $merge = true, bool $must = false): Builder
     {
         if ($value === null) {
             $value = $char;
@@ -70,11 +72,16 @@ class Builder extends ToSql implements Edition
             }
         }
         $exps = [[$column, $char, $value]];
-        if ($merge && count($this->whereExp)) {
-            $endWhere                                   = array_merge(end($this->whereExp), $exps);
-            $this->whereExp[count($this->whereExp) - 1] = $endWhere;
+        if ($must) {
+            $where = &$this->mustWhereExp;
         } else {
-            $this->whereExp[] = $exps;
+            $where = &$this->whereExp;
+        }
+        if ($merge && count($where)) {
+            $endWhere                 = array_merge(end($where), $exps);
+            $where[count($where) - 1] = $endWhere;
+        } else {
+            $where[] = $exps;
         }
         return $this;
     }
