@@ -6,7 +6,8 @@ namespace LandPG;
  * Class ToSql
  * @package LandPG
  *
- * @property-read $whereExp
+ * @property-read array whereExp
+ * @property-read array mustWhereExp
  * @method previewSelect
  */
 class ToSql
@@ -42,10 +43,10 @@ class ToSql
         return implode(', ', $sqlArr);
     }
 
-    protected function toWhereSqlPrepare(): string
+    protected function toWherePartSqlPrepare($baseWhereExp): string
     {
         $sqlArr = [];
-        foreach ($this->whereExp as $whereExp) {
+        foreach ($baseWhereExp as $whereExp) {
             $whereSqlArr = [];
             foreach ($whereExp as $exp) {
                 $sqlStr = $exp[0] . " {$exp[1]} ";
@@ -64,5 +65,15 @@ class ToSql
             $sqlArr[] = implode(' and ', $whereSqlArr);
         }
         return implode(' or ', $sqlArr);
+    }
+
+    protected function toWhereSqlPrepare(): string
+    {
+        $whereSql = $this->toWherePartSqlPrepare($this->whereExp);
+        if (count($this->mustWhereExp)) {
+            $mustWhereSql = $this->toWherePartSqlPrepare($this->mustWhereExp);
+            return "($mustWhereSql) and ($whereSql)";
+        }
+        return $whereSql;
     }
 }

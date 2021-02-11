@@ -7,13 +7,13 @@ class Guard
     private int  $count = 0;
     public array $data  = [];
 
-    public function str(string $str)
+    public function str(string $str): string
     {
         $this->data[] = $str;
         return '$' . ++$this->count;
     }
 
-    public function arr(array $arr)
+    public function arr(array $arr): string
     {
         $is = [];
         foreach ($arr as $v) {
@@ -27,7 +27,7 @@ class Guard
         }
     }
 
-    public function when(array $arr)
+    public function when(array $arr): string
     {
         $caseSql = [];
         foreach ($arr[1] as $when => $then) {
@@ -37,7 +37,7 @@ class Guard
         return "case $arr[0] " . implode(' ', $caseSql) . ' end';
     }
 
-    public function fmtSql(string $sql)
+    public function fmtSql(string $sql): array|string|null
     {
         $data = $this->data;
         return preg_replace_callback('@\$([\d])@', function ($matches) use ($data) {
