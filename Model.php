@@ -132,9 +132,9 @@ class Model implements ArrayAccess
         return $this->prefix . $this->table . $this->suffix;
     }
 
-    static public function query(): Builder
+    static public function query(Model $model = null): Builder
     {
-        return new Builder(new static());
+        return new Builder($model ?? new static());
     }
 
     public function hasOne(Builder $foreign, string $localKey, string $foreignKey, array $columns = [], bool $merge = false): Builder
