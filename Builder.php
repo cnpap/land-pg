@@ -152,7 +152,7 @@ class Builder extends ToSql implements Edition
         if (count($conflict)) {
             $columnSql = implode(', ', $conflict[0]);
             if (count($conflict[1])) {
-                $execSql .= " on conflict $columnSql do update set " . $this->toUpdatePrepare($conflict[1]);
+                $execSql .= " on conflict ($columnSql) do update set " . $this->toUpdatePrepare($conflict[1]);
             } else {
                 $execSql .= " on conflict $columnSql do nothing";
             }

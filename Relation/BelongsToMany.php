@@ -18,7 +18,7 @@ class BelongsToMany extends BelongsTo
                     $data    = [];
                     foreach ($foreignRow->toArray() as $column => $value) {
                         if (in_array($column, $columns)) {
-                            $data[] = $value;
+                            $data[$column] = $value;
                         }
                     }
                     $result[] = $data;
