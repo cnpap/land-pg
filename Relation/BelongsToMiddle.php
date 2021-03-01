@@ -101,10 +101,10 @@ class BelongsToMiddle extends Relation
         $lk = $this->model->{$this->model->primaryKey};
         if ($ids instanceof Builder) {
             $ids->columns([
-                $this->ofLocalKey   => $lk,
-                $this->ofForeignKey => $this->foreignKey,
-                ...$fixed
-            ]);
+                              $this->ofLocalKey   => $lk,
+                              $this->ofForeignKey => $this->foreignKey,
+                              ...$fixed
+                          ]);
             return (clone $this->middle)->insertMany($ids);
         } else {
             $data = [];
@@ -119,8 +119,9 @@ class BelongsToMiddle extends Relation
         }
     }
 
-    function sync($ps = [], array $fixed = []): bool
+    function sync($ps = [], array $fixed = [])
     {
-        return $this->detach() !== false && $this->attach($ps, $fixed) !== false;
+        $this->detach();
+        $this->attach($ps, $fixed);
     }
 }

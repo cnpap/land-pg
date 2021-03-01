@@ -368,7 +368,7 @@ class Builder extends ToSql implements Edition
         }, $this->columns([$column])->select()->toArray());
     }
 
-    public function detach($ids = null): bool
+    public function detach($ids = null): mixed
     {
         if ($this->belongs instanceof BelongsToMiddle) {
             return $this->belongs->detach($ids);
@@ -377,7 +377,7 @@ class Builder extends ToSql implements Edition
         }
     }
 
-    public function attach($ids, $fixed = []): bool
+    public function attach($ids, $fixed = []): mixed
     {
         if ($this->belongs instanceof BelongsToMiddle) {
             return $this->belongs->attach($ids, $fixed);
@@ -386,12 +386,10 @@ class Builder extends ToSql implements Edition
         }
     }
 
-    public function sync($data, $fixed = []): bool
+    public function sync($data, $fixed = [])
     {
         if ($this->belongs instanceof BelongsToMiddle) {
-            return $this->belongs->sync($data, $fixed);
-        } else {
-            return false;
+            $this->belongs->sync($data, $fixed);
         }
     }
 }
