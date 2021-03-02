@@ -42,6 +42,11 @@ class Model implements ArrayAccess
         }
     }
 
+    function toArray(): array
+    {
+        return $this->attributes;
+    }
+
     function getConn(): mixed
     {
         return pg_connect("host={$this->host} port={$this->port} dbname={$this->database} user={$this->username} password={$this->password}");
